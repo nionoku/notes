@@ -1,0 +1,15 @@
+{
+  "extends": ["stylelint-config-standard", "stylelint-config-recommended-vue"],
+  "ignoreFiles": ["dist/**", "dev-dist/**", "node_modules/**"],
+  "overrides": [
+    {
+      "files": ["**/*.vue"],
+      "customSyntax": "postcss-html"
+    }
+  ],
+  "rules": {
+    "custom-property-pattern": null,
+    "no-descending-specificity": null,
+    "selector-class-pattern": null
+  }
+}

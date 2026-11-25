@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <title>Notes Sync Bridge</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 1rem;
+        color: #444;
+        font: 14px system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="status">Notes Sync Bridge</p>
+    <script>
+      (function () {
+        var APP_SOURCE = 'notes-app-bridge';
+        var BRIDGE_SOURCE = 'notes-drive-bridge';
+        var status = document.getElementById('status');
+
+        function send(message) {
+          window.parent.postMessage(message, '*');
+        }
+
+        function ready() {
+          status.textContent = 'Connected';
+          send({source: BRIDGE_SOURCE, type: 'ready'});
+        }
+
+        window.addEventListener('message', function (event) {
+          if (event.source !== window.parent) return;
+          var data = event.data;
+          if (!data || data.source !== APP_SOURCE) return;
+          if (data.type === 'hello') {
+            ready();
+            return;
+          }
+          if (!data.id) return;
+
+          status.textContent = 'Working…';
+          google.script.run
+            .withSuccessHandler(function (response) {
+              var payload = response || {};
+              if (payload.ok) {
+                send({
+                  source: BRIDGE_SOURCE,
+                  id: data.id,
+                  ok: true,
+                  result: payload.result
+                });
+              } else {
+                send({
+                  source: BRIDGE_SOURCE,
+                  id: data.id,
+                  ok: false,
+                  error: payload.error || 'Неизвестная ошибка Apps Script'
+                });
+              }
+              status.textContent = 'Connected';
+            })
+            .withFailureHandler(function (error) {
+              send({
+                source: BRIDGE_SOURCE,
+                id: data.id,
+                ok: false,
+                error: error && error.message ? error.message : String(error)
+              });
+              status.textContent = 'Error';
+            })
+            .bridge(JSON.stringify(data.request || {}));
+        });
+
+        ready();
+      })();
+    </script>
+  </body>
+</html>
