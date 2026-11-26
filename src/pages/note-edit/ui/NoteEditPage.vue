@@ -104,6 +104,10 @@
             name="newTag"
             type="text"
             autocomplete="off"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            enterkeyhint="enter"
             maxlength="50"
             :placeholder="t('noteEdit.newTagPlaceholder')"
             :aria-describedby="tagHintId"
@@ -405,6 +409,7 @@ function handleTagKeydown(event: KeyboardEvent): void {
     return;
   }
   event.preventDefault();
+  event.stopPropagation();
   commitTag();
 }
 
