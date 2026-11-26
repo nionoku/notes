@@ -76,7 +76,7 @@ export default {
     newTitle: 'New note',
     editTitle: 'Edit note',
     title: 'Title',
-    titleHint: 'The title is also the document file and folder name.',
+    titleHint: 'The title is shown in the note and used in its public URL.',
     newTag: 'Add tag',
     newTagPlaceholder: 'e.g. repairs',
     dueLegend: 'Control date',
@@ -254,8 +254,7 @@ export default {
     titleRequired: 'Enter a document title.',
     titleTooLong: 'The title cannot exceed 120 characters.',
     titleSlash: 'The title cannot contain “/” or “\\”.',
-    titleSymbols:
-      'The title cannot contain < > : " | ? * or control characters.',
+    titleSymbols: 'The title cannot contain < > " | ? * or control characters.',
     titleInvalid: 'Invalid title.',
     titleReserved: 'The title “create” is reserved by the app.',
     titleTrailing: 'The title cannot end with a period or space.',

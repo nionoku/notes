@@ -45,8 +45,8 @@ export function joinPath(...segments: readonly string[]): string {
 }
 
 /**
- * Проверяет заголовок документа. Заголовок одновременно является именем
- * директории и файла, поэтому не должен содержать разделители пути.
+ * Проверяет заголовок документа. Заголовок используется как публичный путь,
+ * поэтому не должен содержать разделители пути и управляющие символы.
  *
  * @returns Текст ошибки или null, если заголовок корректен.
  */
@@ -61,7 +61,7 @@ export function validateDocumentTitle(title: string): string | null {
   if (/[/\\]/.test(value)) {
     return translate('validation.titleSlash');
   }
-  if (/[<>:"|?*\p{Cc}]/u.test(value)) {
+  if (/[<>"|?*\p{Cc}]/u.test(value)) {
     return translate('validation.titleSymbols');
   }
   if (value === '.' || value === '..') {
