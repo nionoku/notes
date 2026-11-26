@@ -2,7 +2,7 @@
  * @fileoverview Форматирование дат для интерфейса.
  */
 
-import {translate} from '@/shared/i18n';
+import { translate } from '@/shared/i18n';
 
 const dateFormatter = new Intl.DateTimeFormat('ru-RU', {
   day: 'numeric',

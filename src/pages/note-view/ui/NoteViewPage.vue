@@ -1,9 +1,16 @@
 <template>
-  <section class="note-page" :aria-labelledby="headingId">
+  <section
+    class="note-page"
+    :aria-labelledby="headingId"
+  >
     <template v-if="showError">
       <div role="alert">
         <p>{{ notesStore.error }}</p>
-        <button type="button" class="button-link" @click="retry">
+        <button
+          type="button"
+          class="button-link"
+          @click="retry"
+        >
           {{ t('common.retry') }}
         </button>
       </div>
@@ -30,7 +37,10 @@
                 :title="archiveActionLabel"
                 @click="toggleArchive"
               >
-                <AppIcon name="archive" :size="18" />
+                <AppIcon
+                  name="archive"
+                  :size="18"
+                />
                 <span class="note__action-label">{{ archiveActionLabel }}</span>
               </button>
               <button
@@ -41,7 +51,10 @@
                 :title="t('noteView.exportTitle')"
                 @click="exportNote"
               >
-                <AppIcon name="download" :size="18" />
+                <AppIcon
+                  name="download"
+                  :size="18"
+                />
                 <span class="note__action-label">{{
                   t('noteView.export')
                 }}</span>
@@ -52,7 +65,10 @@
                 :aria-label="t('common.edit')"
                 :title="t('common.edit')"
               >
-                <AppIcon name="edit" :size="18" />
+                <AppIcon
+                  name="edit"
+                  :size="18"
+                />
                 <span class="note__action-label">{{ t('common.edit') }}</span>
               </RouterLink>
             </div>
@@ -68,8 +84,14 @@
           <NoteTags :tags="note.tags" />
           <template v-if="hasDue">
             <div class="note__due">
-              <span class="note__due-info" :class="dueInfoClass">
-                <AppIcon name="clock" :size="14" />
+              <span
+                class="note__due-info"
+                :class="dueInfoClass"
+              >
+                <AppIcon
+                  name="clock"
+                  :size="14"
+                />
 
                 <time :datetime="note.dueAt">{{ dueTime }}</time>
               </span>
@@ -78,7 +100,10 @@
                 class="button-link note__calendar"
                 @click="createCalendarEvent"
               >
-                <AppIcon name="calendar" :size="16" />
+                <AppIcon
+                  name="calendar"
+                  :size="16"
+                />
                 {{ t('noteView.calendar') }}
               </button>
             </div>
@@ -97,7 +122,10 @@
       <div class="note-page__missing">
         <h1>{{ t('common.documentNotFound') }}</h1>
         <p>{{ t('common.documentMissing') }}</p>
-        <RouterLink class="button-link" :to="listUrl">
+        <RouterLink
+          class="button-link"
+          :to="listUrl"
+        >
           {{ t('common.backToNotes') }}
         </RouterLink>
       </div>
@@ -124,12 +152,19 @@
               :aria-label="t('common.close')"
               @click="hideStatus(true)"
             >
-              <AppIcon name="close" :size="14" />
+              <AppIcon
+                name="close"
+                :size="14"
+              />
             </button>
           </div>
         </template>
       </div>
-      <div class="visually-hidden" :aria-live="statusLive" aria-atomic="true">
+      <div
+        class="visually-hidden"
+        :aria-live="statusLive"
+        aria-atomic="true"
+      >
         {{ statusAnnouncement }}
       </div>
     </Teleport>
@@ -141,16 +176,16 @@
  * @fileoverview Просмотр документа.
  */
 
-import {computed, nextTick, onBeforeUnmount, ref, useId} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, nextTick, onBeforeUnmount, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {formatDateTime} from '@/shared/lib/date';
-import {buildCalendarEvent} from '@/shared/lib/calendar';
-import {downloadBlob} from '@/shared/lib/download';
-import {useRoute} from 'vue-router';
+import { formatDateTime } from '@/shared/lib/date';
+import { buildCalendarEvent } from '@/shared/lib/calendar';
+import { downloadBlob } from '@/shared/lib/download';
+import { useRoute } from 'vue-router';
 
-import {useNotesStore, describeError} from '@/entities/note/model/note-store';
-import {exportNoteArchive} from '@/features/export-note/model/export-note';
+import { useNotesStore, describeError } from '@/entities/note/model/note-store';
+import { exportNoteArchive } from '@/features/export-note/model/export-note';
 import NoteDates from '@/entities/note/ui/NoteDates.vue';
 import NoteTags from '@/entities/note/ui/NoteTags.vue';
 import NoteContentView from '@/widgets/note-content/ui/NoteContentView.vue';
@@ -169,7 +204,7 @@ const props = defineProps<{
 const notesStore = useNotesStore();
 const route = useRoute();
 const headingId = useId();
-const {t} = useI18n();
+const { t } = useI18n();
 const statusMessage = ref('');
 const statusFailed = ref(false);
 const statusAnnouncement = ref('');
@@ -327,7 +362,7 @@ function createCalendarEvent(): void {
     url,
   });
   downloadBlob(
-    new Blob([event.content], {type: 'text/calendar;charset=utf-8'}),
+    new Blob([event.content], { type: 'text/calendar;charset=utf-8' }),
     event.fileName,
   );
   showStatus(t('noteView.calendarDownloaded'));

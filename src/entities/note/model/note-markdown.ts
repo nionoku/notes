@@ -2,7 +2,7 @@
  * @fileoverview Чтение и запись markdown-документов с YAML frontmatter.
  */
 
-import {parse as parseYaml, stringify as stringifyYaml} from 'yaml';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
 import {
   documentTitle,
@@ -21,7 +21,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
     return null;
   }
-  return {...value};
+  return { ...value };
 }
 
 /** Удаляет первый H1, если он дословно совпадает с заголовком документа. */
@@ -99,14 +99,14 @@ export function serializeMarkdownDocument(
   body: string,
 ): string {
   const title = stripDocumentExtension(documentTitle(path));
-  const data: Record<string, unknown> = {...frontmatter};
+  const data: Record<string, unknown> = { ...frontmatter };
   if (Array.isArray(data['tags']) && data['tags'].length === 0) {
     delete data['tags'];
   }
 
   const hasFrontmatter = Object.keys(data).length > 0;
   const yaml = hasFrontmatter
-    ? stringifyYaml(data, {lineWidth: 0}).trimEnd()
+    ? stringifyYaml(data, { lineWidth: 0 }).trimEnd()
     : '';
   const titleHeading = `# ${title}`;
   const content = body.replace(/^\s*\r?\n/, '').replace(/\s+$/, '');

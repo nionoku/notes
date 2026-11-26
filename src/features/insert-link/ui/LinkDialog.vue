@@ -4,7 +4,10 @@
     :open="open"
     @update:open="emit('update:open', $event)"
   >
-    <form class="dialog-form" @submit.prevent="handleSubmit">
+    <form
+      class="dialog-form"
+      @submit.prevent="handleSubmit"
+    >
       <div class="dialog-form__field">
         <label :for="urlFieldId">{{ t('linkDialog.address') }}</label>
         <input
@@ -35,7 +38,10 @@
         <button type="submit">
           {{ t('common.insert') }}
         </button>
-        <button type="button" @click="close">
+        <button
+          type="button"
+          @click="close"
+        >
           {{ t('common.cancel') }}
         </button>
       </div>
@@ -48,8 +54,8 @@
  * @fileoverview Диалог вставки обычной ссылки.
  */
 
-import {nextTick, ref, useId, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { nextTick, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import AppDialog from '@/shared/ui/AppDialog.vue';
 
@@ -60,10 +66,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean];
-  submit: [payload: {readonly url: string; readonly text: string}];
+  submit: [payload: { readonly url: string; readonly text: string }];
 }>();
 
-const {t} = useI18n();
+const { t } = useI18n();
 const url = ref('');
 const text = ref('');
 const urlInput = ref<HTMLInputElement | null>(null);
@@ -92,7 +98,7 @@ function handleSubmit(): void {
   if (!normalizedUrl) {
     return;
   }
-  emit('submit', {url: normalizedUrl, text: text.value.trim()});
+  emit('submit', { url: normalizedUrl, text: text.value.trim() });
   close();
 }
 </script>

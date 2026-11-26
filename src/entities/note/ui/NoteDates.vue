@@ -27,17 +27,17 @@
  * @fileoverview Дата создания и дата изменения документа.
  */
 
-import {computed} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {formatDate} from '@/shared/lib/date';
+import { formatDate } from '@/shared/lib/date';
 
 const props = defineProps<{
   createdAt: string;
   modifiedAt: string;
 }>();
 
-const {t} = useI18n();
+const { t } = useI18n();
 const hasAny = computed(() => Boolean(props.createdAt || props.modifiedAt));
 const hasBoth = computed(() => Boolean(props.createdAt && props.modifiedAt));
 const createdLabel = computed(() => formatDate(props.createdAt));

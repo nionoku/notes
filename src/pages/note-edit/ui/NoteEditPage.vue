@@ -1,5 +1,8 @@
 <template>
-  <section class="note-edit-page" :aria-labelledby="headingId">
+  <section
+    class="note-edit-page"
+    :aria-labelledby="headingId"
+  >
     <header class="page-header">
       <h1 :id="headingId">
         {{ pageTitle }}
@@ -9,7 +12,11 @@
     <template v-if="showError">
       <div role="alert">
         <p>{{ notesStore.error }}</p>
-        <button type="button" class="button-link" @click="retry">
+        <button
+          type="button"
+          class="button-link"
+          @click="retry"
+        >
           {{ t('common.retry') }}
         </button>
       </div>
@@ -19,14 +26,21 @@
       <div class="note-edit-page__missing">
         <h2>{{ t('common.documentNotFound') }}</h2>
         <p>{{ t('common.documentMissing') }}</p>
-        <RouterLink class="button-link" :to="listUrl">
+        <RouterLink
+          class="button-link"
+          :to="listUrl"
+        >
           {{ t('common.backToNotes') }}
         </RouterLink>
       </div>
     </template>
 
     <template v-else-if="initialized">
-      <form class="note-form" novalidate @submit.prevent="handleSubmit">
+      <form
+        class="note-form"
+        novalidate
+        @submit.prevent="handleSubmit"
+      >
         <div class="note-form__field">
           <label :for="titleFieldId">{{ t('noteEdit.title') }}</label>
           <input
@@ -43,16 +57,28 @@
             autofocus
             @input="handleTitleInput"
           />
-          <p :id="titleHintId" class="hint">
+          <p
+            :id="titleHintId"
+            class="hint"
+          >
             {{ t('noteEdit.titleHint') }}
           </p>
         </div>
 
         <fieldset class="note-form__fieldset">
           <legend>{{ t('common.tags') }}</legend>
-          <div class="tag-options" :aria-describedby="tagHintId">
-            <template v-for="item in tagItems" :key="item.tag">
-              <label class="tag-option" :style="item.style">
+          <div
+            class="tag-options"
+            :aria-describedby="tagHintId"
+          >
+            <template
+              v-for="item in tagItems"
+              :key="item.tag"
+            >
+              <label
+                class="tag-option"
+                :style="item.style"
+              >
                 <input
                   v-model="selectedTags"
                   class="visually-hidden"
@@ -66,7 +92,10 @@
               </label>
             </template>
           </div>
-          <label class="note-form__custom-tag" :for="newTagFieldId">
+          <label
+            class="note-form__custom-tag"
+            :for="newTagFieldId"
+          >
             {{ t('noteEdit.newTag') }}
           </label>
           <input
@@ -118,22 +147,38 @@
         />
 
         <template v-if="error">
-          <p class="form-error" role="alert">
+          <p
+            class="form-error"
+            role="alert"
+          >
             {{ error }}
           </p>
         </template>
         <template v-if="saving">
-          <p class="form-status" role="status">
+          <p
+            class="form-status"
+            role="status"
+          >
             {{ t('common.saving') }}
           </p>
         </template>
 
         <div class="form-actions">
-          <button type="submit" :disabled="saving">
-            <AppIcon name="save" :size="18" />
+          <button
+            type="submit"
+            :disabled="saving"
+          >
+            <AppIcon
+              name="save"
+              :size="18"
+            />
             {{ t('common.save') }}
           </button>
-          <button type="button" :disabled="saving" @click="handleCancel">
+          <button
+            type="button"
+            :disabled="saving"
+            @click="handleCancel"
+          >
             {{ t('common.cancel') }}
           </button>
         </div>
@@ -147,28 +192,28 @@
  * @fileoverview Создание и редактирование документа.
  */
 
-import {computed, nextTick, ref, useId, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
-import {useRoute, useRouter} from 'vue-router';
+import { computed, nextTick, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 
-import {noteRepository} from '@/entities/note/api/note-repository';
-import {useNotesStore, describeError} from '@/entities/note/model/note-store';
-import {useDriveSyncStore} from '@/features/sync-drive/model/drive-sync-store';
+import { noteRepository } from '@/entities/note/api/note-repository';
+import { useNotesStore, describeError } from '@/entities/note/model/note-store';
+import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import {
   sanitizeAssetFileName,
   validateDocumentTitle,
 } from '@/entities/note/model/note-path';
-import type {PendingAsset} from '@/entities/note/model/note-types';
+import type { PendingAsset } from '@/entities/note/model/note-types';
 import {
   formatShortDate,
   fromDateTimeLocal,
   toDateTimeLocal,
 } from '@/shared/lib/date';
-import {replaceLegacyDocumentLinks} from '@/shared/lib/document-links';
-import {tagHue} from '@/shared/lib/tag-color';
+import { replaceLegacyDocumentLinks } from '@/shared/lib/document-links';
+import { tagHue } from '@/shared/lib/tag-color';
 import MarkdownEditor from '@/widgets/markdown-editor/ui/MarkdownEditor.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
-import {documentRoute, notesListRoute} from '@/shared/lib/urls';
+import { documentRoute, notesListRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
   mode: 'create' | 'edit';
@@ -180,7 +225,7 @@ const syncStore = useDriveSyncStore();
 const router = useRouter();
 const route = useRoute();
 const fieldId = useId();
-const {t} = useI18n();
+const { t } = useI18n();
 
 const title = ref('');
 const body = ref('');
@@ -226,7 +271,7 @@ const headingId = `${fieldId}-heading`;
 const tagItems = computed(() =>
   tagOptions.value.map(tag => ({
     tag,
-    style: {'--tag-hue': String(tagHue(tag))},
+    style: { '--tag-hue': String(tagHue(tag)) },
   })),
 );
 const titleHintId = `${fieldId}-title-hint`;
@@ -292,7 +337,7 @@ watch(
     error.value = null;
     initialize();
   },
-  {immediate: true},
+  { immediate: true },
 );
 
 watch([() => notesStore.status, note], () => initialize());
@@ -401,7 +446,7 @@ async function uploadImage(file: File): Promise<string> {
   const fileName = buildAssetFileName(file);
 
   if (isCreate.value) {
-    pendingAssets.value = [...pendingAssets.value, {fileName, file}];
+    pendingAssets.value = [...pendingAssets.value, { fileName, file }];
     return `assets/${fileName}`;
   }
 

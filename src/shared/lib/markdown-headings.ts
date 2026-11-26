@@ -51,7 +51,7 @@ function uniqueSlug(state: HeadingCounter, slug: string): string {
  */
 export function extractHeadings(markdown: string): Heading[] {
   const headings: Heading[] = [];
-  const counter: HeadingCounter = {counts: new Map()};
+  const counter: HeadingCounter = { counts: new Map() };
   let fence: string | null = null;
 
   for (const line of markdown.split(/\r?\n/)) {

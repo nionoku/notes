@@ -1,8 +1,17 @@
 <template>
   <template v-if="hasTags">
-    <ul class="note-tags" :aria-label="t('common.tags')">
-      <template v-for="item in tagItems" :key="item.tag">
-        <li class="note-tags__item" :style="item.style">
+    <ul
+      class="note-tags"
+      :aria-label="t('common.tags')"
+    >
+      <template
+        v-for="item in tagItems"
+        :key="item.tag"
+      >
+        <li
+          class="note-tags__item"
+          :style="item.style"
+        >
           {{ item.tag }}
         </li>
       </template>
@@ -15,21 +24,21 @@
  * @fileoverview Список тегов документа.
  */
 
-import {computed} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {tagHue} from '@/shared/lib/tag-color';
+import { tagHue } from '@/shared/lib/tag-color';
 
 const props = defineProps<{
   tags: readonly string[];
 }>();
 
-const {t} = useI18n();
+const { t } = useI18n();
 const hasTags = computed(() => props.tags.length > 0);
 const tagItems = computed(() =>
   props.tags.map(tag => ({
     tag,
-    style: {'--tag-hue': String(tagHue(tag))},
+    style: { '--tag-hue': String(tagHue(tag)) },
   })),
 );
 </script>

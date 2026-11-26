@@ -5,7 +5,7 @@
  * расширения `.md`, например `FABIA/Замена ГРМ/Замена ГРМ`.
  */
 
-import {translate} from '@/shared/i18n';
+import { translate } from '@/shared/i18n';
 
 export const DOCUMENT_EXTENSION = '.md';
 

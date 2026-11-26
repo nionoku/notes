@@ -257,7 +257,6 @@ function openSettings(): void {
 }
 
 @keyframes sync-pulse {
-
   0%,
   100% {
     opacity: 1;

@@ -2,7 +2,7 @@
  * @fileoverview Низкоуровневые операции с Origin Private File System.
  */
 
-import {translate} from '@/shared/i18n';
+import { translate } from '@/shared/i18n';
 
 export interface StoredFile {
   readonly path: string;
@@ -47,7 +47,7 @@ export async function getDirectory(
 ): Promise<FileSystemDirectoryHandle> {
   let current = parent;
   for (const segment of segments) {
-    current = await current.getDirectoryHandle(segment, {create});
+    current = await current.getDirectoryHandle(segment, { create });
   }
   return current;
 }
@@ -129,7 +129,7 @@ export async function removeDirectory(
   name: string,
 ): Promise<void> {
   try {
-    await parent.removeEntry(name, {recursive: true});
+    await parent.removeEntry(name, { recursive: true });
   } catch (error) {
     if (!isNotFoundError(error)) {
       throw error;
@@ -141,7 +141,7 @@ export async function removeDirectory(
 export async function copyDirectory(
   source: FileSystemDirectoryHandle,
   target: FileSystemDirectoryHandle,
-  rename?: {readonly from: string; readonly to: string},
+  rename?: { readonly from: string; readonly to: string },
   depth = 0,
 ): Promise<void> {
   for await (const [name, handle] of source.entries()) {
@@ -149,12 +149,14 @@ export async function copyDirectory(
       const targetName =
         depth === 0 && rename && name === rename.from ? rename.to : name;
       const file = await handle.getFile();
-      const fileHandle = await target.getFileHandle(targetName, {create: true});
+      const fileHandle = await target.getFileHandle(targetName, {
+        create: true,
+      });
       await writeBlob(fileHandle, file);
       continue;
     }
 
-    const directory = await target.getDirectoryHandle(name, {create: true});
+    const directory = await target.getDirectoryHandle(name, { create: true });
     await copyDirectory(handle, directory, rename, depth + 1);
   }
 }
@@ -172,7 +174,7 @@ export async function collectFiles(
     for await (const [name, handle] of directory.entries()) {
       const path = [...segments, name];
       if (handle.kind === 'file') {
-        files.push({path: path.join('/'), file: await handle.getFile()});
+        files.push({ path: path.join('/'), file: await handle.getFile() });
       } else {
         await walk(handle, path);
       }

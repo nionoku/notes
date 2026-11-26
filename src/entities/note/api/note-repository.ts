@@ -41,9 +41,9 @@ import type {
   NoteState,
   PendingAsset,
 } from '@/entities/note/model/note-types';
-import {toIsoDate, toOptionalIsoDate} from '@/shared/lib/date';
-import {sha256Hex} from '@/shared/lib/hash';
-import {translate} from '@/shared/i18n';
+import { toIsoDate, toOptionalIsoDate } from '@/shared/lib/date';
+import { sha256Hex } from '@/shared/lib/hash';
+import { translate } from '@/shared/i18n';
 
 const LEGACY_ARCHIVE_TAG = 'Архив';
 
@@ -59,7 +59,7 @@ export class DocumentNotFoundError extends Error {
   override name = 'DocumentNotFoundError';
 
   constructor(path: string) {
-    super(translate('errors.documentNotFound', {path}));
+    super(translate('errors.documentNotFound', { path }));
   }
 }
 
@@ -183,7 +183,7 @@ function splitPath(path: string): {
 } {
   const segments = path.split('/').filter(Boolean);
   const name = segments.pop() ?? '';
-  return {dir: segments, name};
+  return { dir: segments, name };
 }
 
 function pathSegments(path: string): string[] {
@@ -284,7 +284,7 @@ class NoteRepository {
       (await getFileIfExists(root, `${title}${DOCUMENT_EXTENSION}`))
     ) {
       throw new DocumentExistsError(
-        translate('errors.documentExists', {title}),
+        translate('errors.documentExists', { title }),
       );
     }
     if (existingDirectory) {
@@ -296,20 +296,20 @@ class NoteRepository {
         );
       if (!onlyDraftAssets) {
         throw new DocumentExistsError(
-          translate('errors.documentExists', {title}),
+          translate('errors.documentExists', { title }),
         );
       }
     }
 
     const directory =
       existingDirectory ??
-      (await root.getDirectoryHandle(title, {create: true}));
+      (await root.getDirectoryHandle(title, { create: true }));
     const now = new Date().toISOString();
     const path = title;
     const dirPath = title;
     const filePath = joinPath(title, title);
     const frontmatter = buildFrontmatter(
-      {frontmatter: {}, createdAt: now},
+      { frontmatter: {}, createdAt: now },
       draft.dueAt ?? '',
       draft.state ?? 'active',
       normalizeTags(draft.tags),
@@ -376,7 +376,7 @@ class NoteRepository {
           (await getFileIfExists(newParent, `${title}${DOCUMENT_EXTENSION}`))
         ) {
           throw new DocumentExistsError(
-            translate('errors.documentExists', {title}),
+            translate('errors.documentExists', { title }),
           );
         }
 
@@ -391,7 +391,7 @@ class NoteRepository {
         const targetName = `${title}${DOCUMENT_EXTENSION}`;
         if (await getFileIfExists(targetDirectory, targetName)) {
           throw new DocumentExistsError(
-            translate('errors.documentExists', {title}),
+            translate('errors.documentExists', { title }),
           );
         }
       }
@@ -464,7 +464,7 @@ class NoteRepository {
 
   async updateBody(note: Note, body: string): Promise<Note> {
     const root = await getStorageRoot();
-    const {dir, name} = splitPath(note.filePath);
+    const { dir, name } = splitPath(note.filePath);
     const directory = await getDirectoryIfExists(root, dir);
     if (!directory) {
       throw new DocumentNotFoundError(note.path);
@@ -516,9 +516,11 @@ class NoteRepository {
       dirPath.split('/').filter(Boolean),
       true,
     );
-    const assets = await directory.getDirectoryHandle('assets', {create: true});
+    const assets = await directory.getDirectoryHandle('assets', {
+      create: true,
+    });
     const fileName = await ensureUniqueAssetName(assets, preferredName);
-    const fileHandle = await assets.getFileHandle(fileName, {create: true});
+    const fileHandle = await assets.getFileHandle(fileName, { create: true });
     await writeBlob(fileHandle, file);
     return `assets/${fileName}`;
   }
@@ -562,7 +564,7 @@ class NoteRepository {
 
   async hasFile(path: string): Promise<boolean> {
     const root = await getStorageRoot();
-    const {dir, name} = splitPath(path);
+    const { dir, name } = splitPath(path);
     const directory = await getDirectoryIfExists(root, dir);
     if (!directory) {
       return false;
@@ -580,7 +582,7 @@ class NoteRepository {
 
   async collectNoteFiles(
     note: Note,
-  ): Promise<{readonly path: string; readonly file: File}[]> {
+  ): Promise<{ readonly path: string; readonly file: File }[]> {
     const files = await this.listAllFiles();
     const documentPath = `${note.filePath}${DOCUMENT_EXTENSION}`;
     const assetPrefix = note.dirPath ? `${note.dirPath}/assets/` : 'assets/';
@@ -604,12 +606,14 @@ class NoteRepository {
 
     const root = await getStorageRoot();
     const directory = await getDirectory(root, segments, true);
-    const fileHandle = await directory.getFileHandle(fileName, {create: true});
+    const fileHandle = await directory.getFileHandle(fileName, {
+      create: true,
+    });
     await writeBlob(fileHandle, new Blob([Uint8Array.from(bytes)]));
   }
 
   async listAllFiles(): Promise<
-    {readonly path: string; readonly file: File}[]
+    { readonly path: string; readonly file: File }[]
   > {
     const root = await getStorageRoot();
     return collectFiles(root);

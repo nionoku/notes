@@ -1,6 +1,10 @@
 <template>
   <template v-if="updateAvailable">
-    <section class="app-update" role="status" aria-live="polite">
+    <section
+      class="app-update"
+      role="status"
+      aria-live="polite"
+    >
       <div class="app-update__inner">
         <p class="app-update__message">
           <strong>{{ t('pwa.updateTitle') }}</strong>
@@ -24,7 +28,7 @@
  * @fileoverview Уведомление о доступном обновлении PWA.
  */
 
-import {useI18n} from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 
 import {
   applyPwaUpdate,
@@ -32,7 +36,7 @@ import {
   updating,
 } from '@/features/pwa-update/model/pwa-update-state';
 
-const {t} = useI18n();
+const { t } = useI18n();
 
 function reloadApp(): void {
   void applyPwaUpdate();

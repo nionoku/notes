@@ -6,7 +6,10 @@
     :title="t('importNotes.button')"
     @click="openPicker"
   >
-    <AppIcon name="upload" :size="18" />
+    <AppIcon
+      name="upload"
+      :size="18"
+    />
     <span>{{ buttonText }}</span>
   </button>
   <input
@@ -37,15 +40,15 @@
  * @fileoverview Кнопка импорта markdown и ZIP.
  */
 
-import {computed, onBeforeUnmount, ref} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, onBeforeUnmount, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {importNotes} from '@/features/import-note/model/import-notes';
-import {useNotesStore} from '@/entities/note/model/note-store';
+import { importNotes } from '@/features/import-note/model/import-notes';
+import { useNotesStore } from '@/entities/note/model/note-store';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
 const notesStore = useNotesStore();
-const {t} = useI18n();
+const { t } = useI18n();
 const inputRef = ref<HTMLInputElement | null>(null);
 const busy = ref(false);
 const status = ref('');

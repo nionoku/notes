@@ -4,7 +4,10 @@
     :open="open"
     @update:open="emit('update:open', $event)"
   >
-    <form class="sync-form" @submit.prevent="save">
+    <form
+      class="sync-form"
+      @submit.prevent="save"
+    >
       <p class="hint">
         {{ t('sync.settings.hintBefore')
         }}<code>{{ t('sync.settings.drivePath') }}</code
@@ -46,7 +49,10 @@
       </div>
 
       <template v-if="hasError">
-        <p class="form-error" role="alert">
+        <p
+          class="form-error"
+          role="alert"
+        >
           {{ error }}
         </p>
       </template>
@@ -55,11 +61,18 @@
         <button type="submit">
           {{ t('common.save') }}
         </button>
-        <button type="button" @click="close">
+        <button
+          type="button"
+          @click="close"
+        >
           {{ t('common.cancel') }}
         </button>
         <template v-if="isConfigured">
-          <button type="button" class="sync-form__clear" @click="clear">
+          <button
+            type="button"
+            class="sync-form__clear"
+            @click="clear"
+          >
             {{ t('sync.settings.clear') }}
           </button>
         </template>
@@ -73,10 +86,10 @@
  * @fileoverview Настройки доступа к Google Apps Script.
  */
 
-import {computed, ref, useId, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {useDriveSyncStore} from '@/features/sync-drive/model/drive-sync-store';
+import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import AppDialog from '@/shared/ui/AppDialog.vue';
 
 const props = defineProps<{
@@ -88,7 +101,7 @@ const emit = defineEmits<{
 }>();
 
 const syncStore = useDriveSyncStore();
-const {t} = useI18n();
+const { t } = useI18n();
 const fieldId = useId();
 const urlFieldId = `${fieldId}-url`;
 const tokenFieldId = `${fieldId}-token`;
@@ -134,7 +147,7 @@ function save(): void {
     return;
   }
 
-  syncStore.configure({url: normalizedUrl, token: normalizedToken});
+  syncStore.configure({ url: normalizedUrl, token: normalizedToken });
   close();
 }
 

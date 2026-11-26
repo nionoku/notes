@@ -1,4 +1,4 @@
-import {translate} from '@/shared/i18n';
+import { translate } from '@/shared/i18n';
 
 /**
  * @fileoverview SHA-256 для синхронизации файлов.

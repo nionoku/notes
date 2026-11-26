@@ -2,8 +2,8 @@
  * @fileoverview Формирование обычных markdown-ссылок на документы.
  */
 
-import type {ResolvedDocumentLink} from '@/shared/lib/markdown';
-import {documentMarkdownUrl} from '@/shared/lib/urls';
+import type { ResolvedDocumentLink } from '@/shared/lib/markdown';
+import { documentMarkdownUrl } from '@/shared/lib/urls';
 
 export interface DocumentLinkLabel {
   readonly path: string;

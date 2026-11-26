@@ -2,8 +2,8 @@
  * @fileoverview Поиск документов по названию, якорям и тегам.
  */
 
-import type {Note} from '@/entities/note/model/note-types';
-import {extractHeadings, type Heading} from '@/shared/lib/markdown-headings';
+import type { Note } from '@/entities/note/model/note-types';
+import { extractHeadings, type Heading } from '@/shared/lib/markdown-headings';
 
 export type DocumentSearchMode = 'title' | 'anchor';
 
@@ -54,11 +54,11 @@ export function searchDocuments(
           normalize(heading.text).includes(anchorQuery) ||
           normalize(heading.slug).includes(anchorQuery)
         ) {
-          anchors.push({note, heading});
+          anchors.push({ note, heading });
         }
       }
     }
-    return {mode: 'anchor', notes: [], anchors};
+    return { mode: 'anchor', notes: [], anchors };
   }
 
   const titleQuery = normalize(query.trim());

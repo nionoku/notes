@@ -3,10 +3,10 @@
  */
 
 import DOMPurify from 'dompurify';
-import {Marked, type MarkedExtension, type Tokens} from 'marked';
+import { Marked, type MarkedExtension, type Tokens } from 'marked';
 
-import {escapeHtml} from '@/shared/lib/html';
-import {documentUrl} from '@/shared/lib/urls';
+import { escapeHtml } from '@/shared/lib/html';
+import { documentUrl } from '@/shared/lib/urls';
 
 export interface ResolvedDocumentLink {
   readonly path: string;
@@ -100,7 +100,7 @@ function documentLinkExtension(
 }
 
 const SANITIZE_OPTIONS = {
-  USE_PROFILES: {html: true},
+  USE_PROFILES: { html: true },
   ADD_TAGS: ['u', 's', 'del', 'input'],
   ADD_ATTR: [
     'target',
@@ -121,9 +121,9 @@ export function renderMarkdown(
   context: MarkdownRenderContext,
 ): string {
   const marked = new Marked(
-    {gfm: true, breaks: false},
+    { gfm: true, breaks: false },
     documentLinkExtension(context),
   );
-  const html = marked.parse(markdown, {async: false});
+  const html = marked.parse(markdown, { async: false });
   return DOMPurify.sanitize(html, SANITIZE_OPTIONS);
 }

@@ -6,7 +6,7 @@
  * произошли вне прямоугольника диалога.
  */
 
-import {onBeforeUnmount, onMounted, type Ref} from 'vue';
+import { onBeforeUnmount, onMounted, type Ref } from 'vue';
 
 function isOutside(dialog: HTMLDialogElement, event: PointerEvent): boolean {
   const rect = dialog.getBoundingClientRect();

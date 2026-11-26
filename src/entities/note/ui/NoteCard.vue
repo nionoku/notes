@@ -19,8 +19,15 @@
     </template>
     <NoteTags :tags="note.tags" />
     <template v-if="hasDue">
-      <p class="note-card__due" :class="dueClass" :aria-label="dueLabel">
-        <AppIcon name="clock" :size="14" />
+      <p
+        class="note-card__due"
+        :class="dueClass"
+        :aria-label="dueLabel"
+      >
+        <AppIcon
+          name="clock"
+          :size="14"
+        />
         <time :datetime="note.dueAt">{{ dueTime }}</time>
       </p>
     </template>
@@ -37,23 +44,23 @@
  * @fileoverview Карточка документа в списке.
  */
 
-import {computed} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import type {Note} from '@/entities/note/model/note-types';
+import type { Note } from '@/entities/note/model/note-types';
 import NoteDates from '@/entities/note/ui/NoteDates.vue';
 import NoteTags from '@/entities/note/ui/NoteTags.vue';
 import ImportedMark from '@/shared/ui/ImportedMark.vue';
 import ArchivedMark from '@/entities/note/ui/ArchivedMark.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
-import {formatDateTime} from '@/shared/lib/date';
-import {documentRoute} from '@/shared/lib/urls';
+import { formatDateTime } from '@/shared/lib/date';
+import { documentRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
   note: Note;
 }>();
 
-const {t} = useI18n();
+const { t } = useI18n();
 const href = computed(() => documentRoute(props.note.path));
 const isArchived = computed(() => props.note.state === 'archived');
 const hasImported = computed(() => props.note.imported);
@@ -76,7 +83,7 @@ const dueClass = computed(() => ({
 }));
 const dueLabel = computed(() =>
   props.note.dueAt
-    ? t('noteView.dueLabel', {date: formatDateTime(props.note.dueAt)})
+    ? t('noteView.dueLabel', { date: formatDateTime(props.note.dueAt) })
     : '',
 );
 const dueTime = computed(() =>

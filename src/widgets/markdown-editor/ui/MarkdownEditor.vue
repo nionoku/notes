@@ -1,8 +1,10 @@
 <template>
   <div class="markdown-editor">
-    <label class="markdown-editor__label" :for="inputId">{{
-      displayLabel
-    }}</label>
+    <label
+      class="markdown-editor__label"
+      :for="inputId"
+      >{{ displayLabel }}</label
+    >
     <MarkdownToolbar
       :active="activeFormats"
       :allow-images="canUploadImages"
@@ -24,16 +26,25 @@
       @click="syncSelection"
       @focus="syncSelection"
     ></textarea>
-    <p :id="hintId" class="hint">
+    <p
+      :id="hintId"
+      class="hint"
+    >
       {{ t('markdownEditor.hint') }}
     </p>
     <template v-if="isUploading">
-      <p class="form-status" role="status">
+      <p
+        class="form-status"
+        role="status"
+      >
         {{ t('markdownEditor.uploading') }}
       </p>
     </template>
     <template v-if="uploadError">
-      <p class="form-error" role="alert">
+      <p
+        class="form-error"
+        role="alert"
+      >
         {{ uploadError }}
       </p>
     </template>
@@ -43,7 +54,10 @@
       :initial-text="linkInitialText"
       @submit="handleLinkSubmit"
     />
-    <ImageDialog v-model:open="imageOpen" @submit="handleImageSubmit" />
+    <ImageDialog
+      v-model:open="imageOpen"
+      @submit="handleImageSubmit"
+    />
     <DocumentLinkDialog
       v-model:open="documentLinkOpen"
       :initial-path="documentPath"
@@ -58,13 +72,13 @@
  * вставки.
  */
 
-import {computed, ref, useId} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import ImageDialog from '@/features/insert-image/ui/ImageDialog.vue';
 import DocumentLinkDialog from '@/features/insert-document-link/ui/DocumentLinkDialog.vue';
 import LinkDialog from '@/features/insert-link/ui/LinkDialog.vue';
-import type {ToolbarAction} from '@/widgets/markdown-editor/model/toolbar-actions';
+import type { ToolbarAction } from '@/widgets/markdown-editor/model/toolbar-actions';
 import {
   continueMarkdown,
   type BlockFormat,
@@ -79,7 +93,7 @@ import {
   toggleInlineFormat,
 } from '@/widgets/markdown-editor/model/editor-formatting';
 import MarkdownToolbar from '@/widgets/markdown-editor/ui/MarkdownToolbar.vue';
-import {buildDocumentLinkMarkdown} from '@/shared/lib/document-links';
+import { buildDocumentLinkMarkdown } from '@/shared/lib/document-links';
 
 const props = withDefaults(
   defineProps<{
@@ -96,7 +110,7 @@ const props = withDefaults(
   },
 );
 
-const {t} = useI18n();
+const { t } = useI18n();
 const displayLabel = computed(() => props.label || t('markdownEditor.label'));
 
 const emit = defineEmits<{
@@ -112,7 +126,7 @@ const INLINE_FORMATS: ReadonlySet<string> = new Set<InlineFormat>([
 ]);
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
-const selection = ref<EditorSelection>({start: 0, end: 0});
+const selection = ref<EditorSelection>({ start: 0, end: 0 });
 const generatedId = useId();
 const inputId = computed(() => props.id ?? `markdown-editor-${generatedId}`);
 const hintId = computed(() => `${inputId.value}-hint`);
@@ -121,7 +135,7 @@ const linkOpen = ref(false);
 const imageOpen = ref(false);
 const documentLinkOpen = ref(false);
 const linkInitialText = ref('');
-const pendingSelection = ref<EditorSelection>({start: 0, end: 0});
+const pendingSelection = ref<EditorSelection>({ start: 0, end: 0 });
 const uploadError = ref<string | null>(null);
 const isUploading = ref(false);
 

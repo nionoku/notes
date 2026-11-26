@@ -2,7 +2,7 @@
  * @fileoverview Конфигурация синхронизации с Google Apps Script.
  */
 
-import type {DriveConfig} from '@/features/sync-drive/model/drive-types';
+import type { DriveConfig } from '@/features/sync-drive/model/drive-types';
 
 const CONFIG_KEY = 'notes.drive.config.v1';
 const LAST_SYNC_KEY = 'notes.drive.last-sync.v1';
@@ -13,11 +13,11 @@ export function loadDriveConfig(): DriveConfig {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
     if (!raw) {
-      return {url: DEFAULT_DRIVE_SYNC_URL, token: ''};
+      return { url: DEFAULT_DRIVE_SYNC_URL, token: '' };
     }
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null) {
-      return {url: DEFAULT_DRIVE_SYNC_URL, token: ''};
+      return { url: DEFAULT_DRIVE_SYNC_URL, token: '' };
     }
     const record = parsed as Record<string, unknown>;
     return {
@@ -28,7 +28,7 @@ export function loadDriveConfig(): DriveConfig {
       token: typeof record['token'] === 'string' ? record['token'] : '',
     };
   } catch {
-    return {url: DEFAULT_DRIVE_SYNC_URL, token: ''};
+    return { url: DEFAULT_DRIVE_SYNC_URL, token: '' };
   }
 }
 

@@ -2,8 +2,8 @@
  * @fileoverview Состояние базы знаний.
  */
 
-import {computed, ref} from 'vue';
-import {defineStore} from 'pinia';
+import { computed, ref } from 'vue';
+import { defineStore } from 'pinia';
 
 import {
   DocumentExistsError,
@@ -16,15 +16,18 @@ import {
   joinPath,
   normalizeDocumentLinkPath,
 } from '@/entities/note/model/note-path';
-import {toggleTaskAt} from '@/entities/note/model/note-tasks';
+import { toggleTaskAt } from '@/entities/note/model/note-tasks';
 import type {
   Note,
   NoteDraft,
   PendingAsset,
 } from '@/entities/note/model/note-types';
-import {extractHeadings, slugifyHeading} from '@/shared/lib/markdown-headings';
-import type {ResolvedDocumentLink} from '@/shared/lib/markdown';
-import {translate} from '@/shared/i18n';
+import {
+  extractHeadings,
+  slugifyHeading,
+} from '@/shared/lib/markdown-headings';
+import type { ResolvedDocumentLink } from '@/shared/lib/markdown';
+import { translate } from '@/shared/i18n';
 
 type LoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 

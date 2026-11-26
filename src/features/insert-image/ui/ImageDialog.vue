@@ -4,7 +4,10 @@
     :open="open"
     @update:open="emit('update:open', $event)"
   >
-    <form class="dialog-form" @submit.prevent="handleSubmit">
+    <form
+      class="dialog-form"
+      @submit.prevent="handleSubmit"
+    >
       <div class="dialog-form__field">
         <label :for="fileFieldId">{{ t('imageDialog.file') }}</label>
         <input
@@ -29,7 +32,10 @@
         />
       </div>
       <template v-if="hasError">
-        <p class="form-error" role="alert">
+        <p
+          class="form-error"
+          role="alert"
+        >
           {{ error }}
         </p>
       </template>
@@ -37,7 +43,10 @@
         <button type="submit">
           {{ t('imageDialog.submit') }}
         </button>
-        <button type="button" @click="close">
+        <button
+          type="button"
+          @click="close"
+        >
           {{ t('common.cancel') }}
         </button>
       </div>
@@ -50,8 +59,8 @@
  * @fileoverview Диалог вставки изображения.
  */
 
-import {computed, nextTick, ref, useId, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, nextTick, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import AppDialog from '@/shared/ui/AppDialog.vue';
 
@@ -61,10 +70,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:open': [value: boolean];
-  submit: [payload: {readonly file: File; readonly alt: string}];
+  submit: [payload: { readonly file: File; readonly alt: string }];
 }>();
 
-const {t} = useI18n();
+const { t } = useI18n();
 const fileInput = ref<HTMLInputElement | null>(null);
 const alt = ref('');
 const fieldId = useId();
@@ -98,7 +107,7 @@ function handleSubmit(): void {
     error.value = t('imageDialog.chooseFile');
     return;
   }
-  emit('submit', {file, alt: alt.value.trim()});
+  emit('submit', { file, alt: alt.value.trim() });
   close();
 }
 </script>

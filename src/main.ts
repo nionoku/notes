@@ -1,5 +1,5 @@
-import {createPinia} from 'pinia';
-import {createApp} from 'vue';
+import { createPinia } from 'pinia';
+import { createApp } from 'vue';
 
 import App from '@/App.vue';
 import {
@@ -7,7 +7,7 @@ import {
   stripDriveSecretsFromUrl,
 } from '@/features/sync-drive/model/drive-config';
 import router from '@/app/router';
-import {applyDocumentLocale, i18n} from '@/shared/i18n';
+import { applyDocumentLocale, i18n } from '@/shared/i18n';
 import '@/app/styles/reset.css';
 import '@/app/styles/global.css';
 
@@ -26,7 +26,7 @@ void router.isReady().then(() => {
 
 if (import.meta.env.PROD) {
   void import('@/features/pwa-update/model/register-pwa').then(
-    ({registerPwa}) => {
+    ({ registerPwa }) => {
       registerPwa();
     },
   );

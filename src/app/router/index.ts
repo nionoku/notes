@@ -15,15 +15,15 @@ function pathFromParams(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
-function viewProps(route: RouteLocationNormalized): {path: string} {
-  return {path: pathFromParams(route.params['pathMatch'])};
+function viewProps(route: RouteLocationNormalized): { path: string } {
+  return { path: pathFromParams(route.params['pathMatch']) };
 }
 
 function editProps(route: RouteLocationNormalized): {
   mode: 'edit';
   path: string;
 } {
-  return {mode: 'edit', path: pathFromParams(route.params['pathMatch'])};
+  return { mode: 'edit', path: pathFromParams(route.params['pathMatch']) };
 }
 
 export const router = createRouter({
@@ -39,7 +39,7 @@ export const router = createRouter({
       path: '/create',
       name: 'note-create',
       component: NoteEditPage,
-      props: {mode: 'create'},
+      props: { mode: 'create' },
       sensitive: true,
     },
     {
@@ -64,7 +64,7 @@ export const router = createRouter({
     if (to.hash) {
       return false;
     }
-    return {top: 0};
+    return { top: 0 };
   },
 });
 

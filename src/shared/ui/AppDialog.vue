@@ -17,7 +17,10 @@
           :aria-label="t('common.close')"
           @click="close"
         >
-          <AppIcon name="close" :size="18" />
+          <AppIcon
+            name="close"
+            :size="18"
+          />
         </button>
       </div>
       <slot />
@@ -30,10 +33,10 @@
  * @fileoverview Обёртка над нативным модальным `<dialog>`.
  */
 
-import {nextTick, onMounted, ref, useId, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { nextTick, onMounted, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {useLightDismiss} from '@/shared/lib/light-dismiss';
+import { useLightDismiss } from '@/shared/lib/light-dismiss';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
 const props = defineProps<{
@@ -47,7 +50,7 @@ const emit = defineEmits<{
 
 const dialogRef = ref<HTMLDialogElement | null>(null);
 const titleId = useId();
-const {t} = useI18n();
+const { t } = useI18n();
 
 useLightDismiss(dialogRef);
 
@@ -84,7 +87,7 @@ watch(
   },
 );
 
-defineExpose({close});
+defineExpose({ close });
 </script>
 
 <style scoped>

@@ -5,7 +5,10 @@
     :aria-label="t('noteView.archiveLabel')"
     :title="t('noteView.archiveLabel')"
   >
-    <AppIcon name="archive" :size="size" />
+    <AppIcon
+      name="archive"
+      :size="size"
+    />
   </span>
 </template>
 
@@ -14,7 +17,7 @@
  * @fileoverview Отметка архивного документа.
  */
 
-import {useI18n} from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
@@ -22,10 +25,10 @@ withDefaults(
   defineProps<{
     size?: number;
   }>(),
-  {size: 18},
+  { size: 18 },
 );
 
-const {t} = useI18n();
+const { t } = useI18n();
 </script>
 
 <style scoped>

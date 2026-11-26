@@ -5,7 +5,10 @@
     :aria-label="t('search.label')"
     @submit.prevent
   >
-    <label class="notes-search__label" :for="inputId">
+    <label
+      class="notes-search__label"
+      :for="inputId"
+    >
       {{ t('search.label') }}
     </label>
     <input
@@ -26,7 +29,10 @@
         role="group"
         :aria-label="t('search.tags')"
       >
-        <template v-for="item in tagItems" :key="item.tag">
+        <template
+          v-for="item in tagItems"
+          :key="item.tag"
+        >
           <button
             type="button"
             class="notes-search__tag"
@@ -55,10 +61,10 @@
  * @fileoverview Строка поиска и фильтр по тегам.
  */
 
-import {computed, useId} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {tagHue} from '@/shared/lib/tag-color';
+import { tagHue } from '@/shared/lib/tag-color';
 
 const props = defineProps<{
   query: string;
@@ -73,13 +79,13 @@ const emit = defineEmits<{
   'update:showArchived': [value: boolean];
 }>();
 
-const {t} = useI18n();
+const { t } = useI18n();
 const inputId = useId();
 const hasTags = computed(() => props.tags.length > 0);
 const tagItems = computed(() =>
   props.tags.map(tag => ({
     tag,
-    style: {'--tag-hue': String(tagHue(tag))},
+    style: { '--tag-hue': String(tagHue(tag)) },
     pressed: props.selectedTags.includes(tag),
   })),
 );

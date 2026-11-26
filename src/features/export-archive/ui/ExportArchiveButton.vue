@@ -8,7 +8,10 @@
       :title="buttonLabel"
       @click="exportArchive"
     >
-      <AppIcon name="download" :size="18" />
+      <AppIcon
+        name="download"
+        :size="18"
+      />
       <span class="export-archive__label">
         {{ buttonText }}
       </span>
@@ -38,15 +41,15 @@
  */
 
 import JSZip from 'jszip';
-import {computed, onBeforeUnmount, ref} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, onBeforeUnmount, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {noteRepository} from '@/entities/note/api/note-repository';
-import {downloadBlob, todayFileStamp} from '@/shared/lib/download';
-import {translatePlural} from '@/shared/i18n';
+import { noteRepository } from '@/entities/note/api/note-repository';
+import { downloadBlob, todayFileStamp } from '@/shared/lib/download';
+import { translatePlural } from '@/shared/i18n';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
-const {t} = useI18n();
+const { t } = useI18n();
 const exporting = ref(false);
 const status = ref('');
 const error = ref<string | null>(null);
@@ -111,12 +114,12 @@ async function exportArchive(): Promise<void> {
     const blob = await zip.generateAsync({
       type: 'blob',
       compression: 'DEFLATE',
-      compressionOptions: {level: 6},
+      compressionOptions: { level: 6 },
     });
     downloadBlob(blob, `notes-${todayFileStamp()}.zip`);
     const filesLabel = translatePlural('exportArchive.files', files.length);
     showStatus(
-      t('exportArchive.ready', {count: files.length, files: filesLabel}),
+      t('exportArchive.ready', { count: files.length, files: filesLabel }),
     );
   } catch (archiveError) {
     status.value = '';

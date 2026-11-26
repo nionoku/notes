@@ -14,7 +14,10 @@
         autofocus
         @click="close"
       >
-        <AppIcon name="close" :size="22" />
+        <AppIcon
+          name="close"
+          :size="22"
+        />
       </button>
       <figure class="image-lightbox__figure">
         <template v-if="src">
@@ -40,10 +43,10 @@
  * @fileoverview Просмотр изображения в модальном окне.
  */
 
-import {computed, nextTick, onMounted, ref, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {useLightDismiss} from '@/shared/lib/light-dismiss';
+import { useLightDismiss } from '@/shared/lib/light-dismiss';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
 const props = withDefaults(
@@ -63,7 +66,7 @@ const emit = defineEmits<{
 }>();
 
 const dialogRef = ref<HTMLDialogElement | null>(null);
-const {t} = useI18n();
+const { t } = useI18n();
 const label = computed(() => props.alt || t('imageLightbox.label'));
 
 useLightDismiss(dialogRef);

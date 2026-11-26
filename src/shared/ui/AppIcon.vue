@@ -1,5 +1,9 @@
 <template>
-  <span class="app-icon" :style="iconStyle" aria-hidden="true"></span>
+  <span
+    class="app-icon"
+    :style="iconStyle"
+    aria-hidden="true"
+  ></span>
 </template>
 
 <script setup lang="ts">
@@ -7,14 +11,14 @@
  * @fileoverview Иконки интерфейса из отдельных SVG-файлов.
  */
 
-import {computed} from 'vue';
+import { computed } from 'vue';
 
 const props = withDefaults(
   defineProps<{
     name: string;
     size?: number;
   }>(),
-  {size: 20},
+  { size: 20 },
 );
 
 const iconUrl = computed(

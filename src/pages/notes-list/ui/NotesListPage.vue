@@ -1,9 +1,16 @@
 <template>
-  <section class="notes-page" :aria-labelledby="headingId">
+  <section
+    class="notes-page"
+    :aria-labelledby="headingId"
+  >
     <template v-if="showError">
       <div role="alert">
         <p>{{ notesStore.error }}</p>
-        <button type="button" class="button-link" @click="retry">
+        <button
+          type="button"
+          class="button-link"
+          @click="retry"
+        >
           {{ t('common.retry') }}
         </button>
       </div>
@@ -13,7 +20,10 @@
       <div class="notes-page__empty">
         <h2>{{ t('notesList.emptyTitle') }}</h2>
         <p>{{ t('notesList.emptyHint') }}</p>
-        <RouterLink class="button-link" :to="createUrl">
+        <RouterLink
+          class="button-link"
+          :to="createUrl"
+        >
           {{ t('notesList.create') }}
         </RouterLink>
       </div>
@@ -34,9 +44,15 @@
         <template v-if="isAnchorMode">
           <template v-if="hasAnchorResults">
             <ol class="anchor-results">
-              <template v-for="item in anchorItems" :key="item.key">
+              <template
+                v-for="item in anchorItems"
+                :key="item.key"
+              >
                 <li>
-                  <RouterLink class="anchor-result" :to="item.href">
+                  <RouterLink
+                    class="anchor-result"
+                    :to="item.href"
+                  >
                     <span class="anchor-result__heading">{{
                       item.heading
                     }}</span>
@@ -56,7 +72,10 @@
 
         <template v-else-if="hasNotes">
           <ol class="notes-list">
-            <template v-for="note in searchResult.notes" :key="note.path">
+            <template
+              v-for="note in searchResult.notes"
+              :key="note.path"
+            >
               <li>
                 <NoteCard :note="note" />
               </li>
@@ -80,18 +99,18 @@
  * @fileoverview Список записей базы знаний.
  */
 
-import {computed, ref, useId} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import NoteCard from '@/entities/note/ui/NoteCard.vue';
 import NotesSearch from '@/features/search-notes/ui/NotesSearch.vue';
-import {searchDocuments} from '@/features/search-notes/model/search-notes';
-import {useNotesStore} from '@/entities/note/model/note-store';
-import {createDocumentRoute, documentRoute} from '@/shared/lib/urls';
+import { searchDocuments } from '@/features/search-notes/model/search-notes';
+import { useNotesStore } from '@/entities/note/model/note-store';
+import { createDocumentRoute, documentRoute } from '@/shared/lib/urls';
 
 const notesStore = useNotesStore();
 const headingId = useId();
-const {t} = useI18n();
+const { t } = useI18n();
 const query = ref('');
 const selectedTags = ref<string[]>([]);
 const showArchived = ref(false);

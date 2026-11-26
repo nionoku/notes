@@ -13,10 +13,10 @@
  * @fileoverview Корневой компонент приложения.
  */
 
-import {onMounted} from 'vue';
+import { onMounted } from 'vue';
 
-import {useNotesStore} from '@/entities/note/model/note-store';
-import {useDriveSyncStore} from '@/features/sync-drive/model/drive-sync-store';
+import { useNotesStore } from '@/entities/note/model/note-store';
+import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import AppHeader from '@/widgets/app-header/ui/AppHeader.vue';
 import AppUpdatePrompt from '@/features/pwa-update/ui/AppUpdatePrompt.vue';
 

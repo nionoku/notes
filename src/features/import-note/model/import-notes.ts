@@ -4,8 +4,8 @@
 
 import JSZip from 'jszip';
 
-import {noteRepository} from '@/entities/note/api/note-repository';
-import {translate} from '@/shared/i18n';
+import { noteRepository } from '@/entities/note/api/note-repository';
+import { translate } from '@/shared/i18n';
 import {
   parseMarkdownDocument,
   serializeMarkdownDocument,
@@ -103,7 +103,7 @@ async function uniqueTitle(base: string): Promise<string> {
     attempt += 1;
     candidate =
       attempt === 1
-        ? translate('importNotes.importSuffix', {title: initial})
+        ? translate('importNotes.importSuffix', { title: initial })
         : translate('importNotes.importSuffixNumbered', {
             title: initial,
             number: attempt,
@@ -115,7 +115,7 @@ async function uniqueTitle(base: string): Promise<string> {
 
 async function importMarkdownFile(
   file: File,
-  summary: {documents: number; files: number; skipped: number},
+  summary: { documents: number; files: number; skipped: number },
 ): Promise<void> {
   const base = file.name.replace(/\.md$/i, '');
   const title = await uniqueTitle(base);
@@ -167,14 +167,14 @@ async function uniqueArchivePrefix(base: string): Promise<string> {
 
 async function importArchive(
   file: File,
-  summary: {documents: number; files: number; skipped: number},
+  summary: { documents: number; files: number; skipped: number },
 ): Promise<void> {
   const zip = await JSZip.loadAsync(await file.arrayBuffer());
   const entries = Object.values(zip.files)
     .filter(entry => !entry.dir)
-    .map(entry => ({entry, path: safeArchivePath(entry.name)}))
+    .map(entry => ({ entry, path: safeArchivePath(entry.name) }))
     .filter(
-      (item): item is {entry: JSZip.JSZipObject; path: string} =>
+      (item): item is { entry: JSZip.JSZipObject; path: string } =>
         item.path !== null && !shouldSkipArchivePath(item.path),
     );
 
@@ -186,7 +186,7 @@ async function importArchive(
     }
   }
 
-  for (const {entry, path} of entries) {
+  for (const { entry, path } of entries) {
     const target = prefix ? `${prefix}/${path}` : path;
     if (/\.md$/i.test(path)) {
       await writeMarkdown({
@@ -208,7 +208,7 @@ async function importArchive(
 export async function importNotes(
   files: readonly File[],
 ): Promise<ImportSummary> {
-  const summary = {documents: 0, files: 0, skipped: 0};
+  const summary = { documents: 0, files: 0, skipped: 0 };
 
   for (const file of files) {
     if (/\.zip$/i.test(file.name)) {
@@ -223,7 +223,7 @@ export async function importNotes(
                 ? error.message
                 : translate('importNotes.corruptArchive'),
           }),
-          {cause: error},
+          { cause: error },
         );
       }
       continue;

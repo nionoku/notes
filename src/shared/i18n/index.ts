@@ -2,7 +2,7 @@
  * @fileoverview Инициализация vue-i18n и помощники для сообщений вне Vue.
  */
 
-import {createI18n} from 'vue-i18n';
+import { createI18n } from 'vue-i18n';
 
 import ru from '@/shared/i18n/messages/ru';
 
@@ -10,7 +10,7 @@ export const i18n = createI18n({
   legacy: false,
   locale: 'ru',
   fallbackLocale: 'ru',
-  messages: {ru},
+  messages: { ru },
   globalInjection: true,
   warnHtmlMessage: false,
   pluralRules: {

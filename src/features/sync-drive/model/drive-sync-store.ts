@@ -2,8 +2,8 @@
  * @fileoverview Состояние синхронизации с Google Drive.
  */
 
-import {computed, ref} from 'vue';
-import {defineStore} from 'pinia';
+import { computed, ref } from 'vue';
+import { defineStore } from 'pinia';
 
 import {
   loadDriveConfig,
@@ -11,21 +11,21 @@ import {
   saveDriveConfig,
   saveLastSyncAt,
 } from '@/features/sync-drive/model/drive-config';
-import {syncDrive} from '@/features/sync-drive/model/drive-sync';
+import { syncDrive } from '@/features/sync-drive/model/drive-sync';
 import type {
   DriveConfig,
   DriveSyncState,
   SyncProgress,
   SyncSummary,
 } from '@/features/sync-drive/model/drive-types';
-import {formatDateTime} from '@/shared/lib/date';
-import {translate} from '@/shared/i18n';
+import { formatDateTime } from '@/shared/lib/date';
+import { translate } from '@/shared/i18n';
 
 function summaryDetail(summary: SyncSummary): string {
   const parts = [
-    translate('sync.detail.summaryUploaded', {count: summary.uploaded}),
-    translate('sync.detail.summaryDownloaded', {count: summary.downloaded}),
-    translate('sync.detail.summarySkipped', {count: summary.skipped}),
+    translate('sync.detail.summaryUploaded', { count: summary.uploaded }),
+    translate('sync.detail.summaryDownloaded', { count: summary.downloaded }),
+    translate('sync.detail.summarySkipped', { count: summary.skipped }),
   ];
   if (summary.conflicts > 0) {
     parts.push(
@@ -80,7 +80,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
   });
   const statusDetail = computed(() => {
     if (progress.value && state.value === 'syncing') {
-      const {phase, current, total} = progress.value;
+      const { phase, current, total } = progress.value;
       if (total > 0) {
         const labelKey =
           phase === 'download'
@@ -101,7 +101,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
   );
 
   function configure(next: DriveConfig): void {
-    config.value = {url: next.url.trim(), token: next.token.trim()};
+    config.value = { url: next.url.trim(), token: next.token.trim() };
     saveDriveConfig(config.value);
     state.value = configured.value ? 'idle' : 'not-configured';
     detail.value = configured.value
@@ -110,7 +110,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
   }
 
   function clear(): void {
-    config.value = {url: '', token: ''};
+    config.value = { url: '', token: '' };
     saveDriveConfig(config.value);
     state.value = 'not-configured';
     detail.value = translate('sync.detail.disabled');

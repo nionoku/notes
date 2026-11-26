@@ -2,7 +2,10 @@
   <header class="app-header">
     <div class="app-header__inner">
       <template v-if="isHome">
-        <RouterLink class="app-header__brand" :to="listUrl">
+        <RouterLink
+          class="app-header__brand"
+          :to="listUrl"
+        >
           <img
             class="app-header__logo"
             :src="logoUrl"
@@ -14,12 +17,21 @@
         </RouterLink>
       </template>
       <template v-else>
-        <RouterLink class="app-header__back" :to="listUrl">
-          <AppIcon name="arrow-left" :size="16" />
+        <RouterLink
+          class="app-header__back"
+          :to="listUrl"
+        >
+          <AppIcon
+            name="arrow-left"
+            :size="16"
+          />
           {{ t('header.back') }}
         </RouterLink>
       </template>
-      <nav class="app-header__nav" :aria-label="t('header.navigation')">
+      <nav
+        class="app-header__nav"
+        :aria-label="t('header.navigation')"
+      >
         <template v-if="showNewNoteOptions">
           <div class="app-header__new-group">
             <RouterLink
@@ -28,7 +40,10 @@
               :aria-label="t('header.newNote')"
               :title="t('header.newNote')"
             >
-              <AppIcon name="plus" :size="18" />
+              <AppIcon
+                name="plus"
+                :size="18"
+              />
               <span class="app-header__new-label">{{
                 t('header.newNote')
               }}</span>
@@ -40,7 +55,10 @@
               :aria-label="t('header.newNoteOptions')"
               :title="t('header.newNoteOptions')"
             >
-              <AppIcon name="chevron-down" :size="16" />
+              <AppIcon
+                name="chevron-down"
+                :size="16"
+              />
             </button>
             <div
               :id="menuId"
@@ -71,7 +89,10 @@
             :aria-label="t('header.newNote')"
             :title="t('header.newNote')"
           >
-            <AppIcon name="plus" :size="18" />
+            <AppIcon
+              name="plus"
+              :size="18"
+            />
             <span class="app-header__new-label">{{ t('header.newNote') }}</span>
           </RouterLink>
         </template>
@@ -89,14 +110,14 @@
  * @fileoverview Шапка приложения.
  */
 
-import {computed, ref, useId, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
-import {useRoute} from 'vue-router';
+import { computed, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 
 import ExportArchiveButton from '@/features/export-archive/ui/ExportArchiveButton.vue';
 import ImportNotesButton from '@/features/import-note/ui/ImportNotesButton.vue';
 import SyncMenu from '@/features/sync-drive/ui/SyncMenu.vue';
-import {useNotesStore} from '@/entities/note/model/note-store';
+import { useNotesStore } from '@/entities/note/model/note-store';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 import {
   createDocumentRoute,
@@ -107,7 +128,7 @@ import {
 const baseUrl = import.meta.env.BASE_URL;
 const route = useRoute();
 const notesStore = useNotesStore();
-const {t} = useI18n();
+const { t } = useI18n();
 const listUrl = notesListRoute();
 const createUrl = createDocumentRoute();
 const logoUrl = `${baseUrl}favicon.svg`;

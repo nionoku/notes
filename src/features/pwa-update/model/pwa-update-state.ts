@@ -2,7 +2,7 @@
  * @fileoverview Состояние обновления PWA.
  */
 
-import {ref} from 'vue';
+import { ref } from 'vue';
 
 export const updateAvailable = ref(false);
 export const updating = ref(false);

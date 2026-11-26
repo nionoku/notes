@@ -4,7 +4,10 @@
     :open="open"
     @update:open="emit('update:open', $event)"
   >
-    <form class="dialog-form" @submit.prevent="handleSubmit">
+    <form
+      class="dialog-form"
+      @submit.prevent="handleSubmit"
+    >
       <template v-if="hasNoNotes">
         <p class="hint">
           {{ t('documentLinkDialog.empty') }}
@@ -23,7 +26,10 @@
             autofocus
             required
           >
-            <template v-for="option in noteOptions" :key="option.value">
+            <template
+              v-for="option in noteOptions"
+              :key="option.value"
+            >
               <option :value="option.value">
                 {{ option.label }}
               </option>
@@ -35,11 +41,18 @@
             <label :for="anchorFieldId">{{
               t('documentLinkDialog.section')
             }}</label>
-            <select :id="anchorFieldId" v-model="anchor" name="anchor">
+            <select
+              :id="anchorFieldId"
+              v-model="anchor"
+              name="anchor"
+            >
               <option value="">
                 {{ t('documentLinkDialog.wholeDocument') }}
               </option>
-              <template v-for="option in headingOptions" :key="option.value">
+              <template
+                v-for="option in headingOptions"
+                :key="option.value"
+              >
                 <option :value="option.value">
                   {{ option.label }}
                 </option>
@@ -49,10 +62,16 @@
         </template>
       </template>
       <div class="form-actions">
-        <button type="submit" :disabled="hasNoNotes">
+        <button
+          type="submit"
+          :disabled="hasNoNotes"
+        >
           {{ t('common.insert') }}
         </button>
-        <button type="button" @click="close">
+        <button
+          type="button"
+          @click="close"
+        >
           {{ t('common.cancel') }}
         </button>
       </div>
@@ -65,11 +84,11 @@
  * @fileoverview Диалог выбора документа и якоря для обычной markdown-ссылки.
  */
 
-import {computed, nextTick, ref, useId, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, nextTick, ref, useId, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {useNotesStore} from '@/entities/note/model/note-store';
-import {extractHeadings} from '@/shared/lib/markdown-headings';
+import { useNotesStore } from '@/entities/note/model/note-store';
+import { extractHeadings } from '@/shared/lib/markdown-headings';
 import AppDialog from '@/shared/ui/AppDialog.vue';
 
 const props = defineProps<{
@@ -90,7 +109,7 @@ const emit = defineEmits<{
 }>();
 
 const notesStore = useNotesStore();
-const {t} = useI18n();
+const { t } = useI18n();
 const selectedPath = ref('');
 const anchor = ref('');
 const selectInput = ref<HTMLSelectElement | null>(null);

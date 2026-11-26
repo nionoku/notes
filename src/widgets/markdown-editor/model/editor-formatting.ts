@@ -27,11 +27,11 @@ interface InlineMarkers {
 }
 
 const INLINE_MARKERS: Readonly<Record<InlineFormat, InlineMarkers>> = {
-  bold: {open: '**', close: '**'},
-  italic: {open: '*', close: '*'},
-  underline: {open: '<u>', close: '</u>'},
-  strikethrough: {open: '~~', close: '~~'},
-  code: {open: '`', close: '`'},
+  bold: { open: '**', close: '**' },
+  italic: { open: '*', close: '*' },
+  underline: { open: '<u>', close: '</u>' },
+  strikethrough: { open: '~~', close: '~~' },
+  code: { open: '`', close: '`' },
 };
 
 const CHECKBOX_PATTERN = /^(\s*)[-*+]\s+\[[ xX]\]\s*/;
@@ -47,7 +47,7 @@ function clampSelection(
 ): EditorSelection {
   const start = Math.max(0, Math.min(selection.start, value.length));
   const end = Math.max(start, Math.min(selection.end, value.length));
-  return {start, end};
+  return { start, end };
 }
 
 function lineStart(value: string, index: number): number {
@@ -67,11 +67,11 @@ function blockRange(
   value: string,
   selection: EditorSelection,
 ): EditorSelection {
-  const {start, end} = clampSelection(value, selection);
+  const { start, end } = clampSelection(value, selection);
   const startLine = lineStart(value, start);
   const endIndex = end > start && value[end - 1] === '\n' ? end - 1 : end;
   const endLine = lineEnd(value, endIndex);
-  return {start: startLine, end: endLine};
+  return { start: startLine, end: endLine };
 }
 
 function isEscaped(value: string, index: number): boolean {
@@ -146,7 +146,7 @@ function isInlineActive(
   }
 
   const markers = INLINE_MARKERS[format];
-  const {start, end} = clampSelection(value, selection);
+  const { start, end } = clampSelection(value, selection);
   const openLength = markers.open.length;
   const closeLength = markers.close.length;
 
@@ -180,7 +180,7 @@ function removeEnclosingMarkers(
   selection: EditorSelection,
   markers: InlineMarkers,
 ): EditResult | null {
-  const {start, end} = selection;
+  const { start, end } = selection;
   const openLength = markers.open.length;
   const closeLength = markers.close.length;
 
@@ -403,7 +403,7 @@ function findFenceBlock(
   readonly closeStart: number;
   readonly closeEnd: number;
 } | null {
-  let open: {readonly start: number; readonly marker: string} | null = null;
+  let open: { readonly start: number; readonly marker: string } | null = null;
   let offset = 0;
 
   for (const line of value.split('\n')) {
@@ -411,7 +411,7 @@ function findFenceBlock(
     if (match) {
       const marker = (match[1] ?? '')[0] ?? '`';
       if (open === null) {
-        open = {start: offset, marker};
+        open = { start: offset, marker };
       } else if (open.marker === marker) {
         const blockEnd = offset + line.length;
         if (index >= open.start && index <= blockEnd) {
@@ -447,7 +447,7 @@ function isBlockActive(
   selection: EditorSelection,
   format: BlockFormat,
 ): boolean {
-  const {start, end} = clampSelection(value, selection);
+  const { start, end } = clampSelection(value, selection);
   if (format === 'code-block') {
     return isInsideFencedCode(value, start);
   }
@@ -580,7 +580,7 @@ function removeFenceBlock(
 
   return {
     value: finalValue,
-    selection: {start: block.openStart, end: block.openStart},
+    selection: { start: block.openStart, end: block.openStart },
   };
 }
 
@@ -647,7 +647,7 @@ export function toggleBlockFormat(
           start: prefix.length + (transformed[0]?.length ?? 0),
           end: prefix.length + (transformed[0]?.length ?? 0),
         }
-      : {start: prefix.length, end: prefix.length + replacement.length},
+      : { start: prefix.length, end: prefix.length + replacement.length },
   };
 }
 
@@ -736,7 +736,10 @@ function mapListCaret(
 function listLines(
   value: string,
   selection: EditorSelection,
-): {readonly block: EditorSelection; readonly lines: readonly string[]} | null {
+): {
+  readonly block: EditorSelection;
+  readonly lines: readonly string[];
+} | null {
   const safeSelection = clampSelection(value, selection);
   const block = blockRange(value, safeSelection);
   const lines = value.slice(block.start, block.end).split('\n');
@@ -749,7 +752,7 @@ function listLines(
     return null;
   }
 
-  return {block, lines};
+  return { block, lines };
 }
 
 function outdentAmount(value: string, lineStart: number, line: string): number {
@@ -783,7 +786,7 @@ export function indentListSelection(
     return null;
   }
 
-  const {block, lines} = result;
+  const { block, lines } = result;
   if (
     lines.some(line => line.trim() !== '' && TASK_MARKER_PATTERN.test(line))
   ) {
@@ -853,7 +856,7 @@ export function outdentListSelection(
     return null;
   }
 
-  const {block, lines} = result;
+  const { block, lines } = result;
   let offset = block.start;
   const lineStarts = lines.map(line => {
     const start = offset;
@@ -958,7 +961,7 @@ export function continueMarkdown(
   if (content.trim() === '' && position >= start + markerLength) {
     return {
       value: value.slice(0, start) + '\n' + value.slice(end),
-      selection: {start: start + 1, end: start + 1},
+      selection: { start: start + 1, end: start + 1 },
     };
   }
 

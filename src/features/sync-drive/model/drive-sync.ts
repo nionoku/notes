@@ -2,10 +2,10 @@
  * @fileoverview Синхронизация локальной базы с Google Drive.
  */
 
-import {noteRepository} from '@/entities/note/api/note-repository';
-import {useNotesStore} from '@/entities/note/model/note-store';
-import type {Note} from '@/entities/note/model/note-types';
-import {AppsScriptTransport} from '@/features/sync-drive/model/apps-script-transport';
+import { noteRepository } from '@/entities/note/api/note-repository';
+import { useNotesStore } from '@/entities/note/model/note-store';
+import type { Note } from '@/entities/note/model/note-types';
+import { AppsScriptTransport } from '@/features/sync-drive/model/apps-script-transport';
 import type {
   DriveConfig,
   LocalSyncFile,
@@ -14,9 +14,9 @@ import type {
   SyncProgress,
   SyncSummary,
 } from '@/features/sync-drive/model/drive-types';
-import {base64ToBytes, bytesToBase64} from '@/shared/lib/base64';
-import {sha256Hex} from '@/shared/lib/hash';
-import {translate} from '@/shared/i18n';
+import { base64ToBytes, bytesToBase64 } from '@/shared/lib/base64';
+import { sha256Hex } from '@/shared/lib/hash';
+import { translate } from '@/shared/i18n';
 
 export const MAX_SYNC_FILE_SIZE = 8 * 1024 * 1024;
 
@@ -52,7 +52,7 @@ export async function collectLocalFiles(
     });
   }
 
-  return {files, skippedLarge};
+  return { files, skippedLarge };
 }
 
 export function planSync(
@@ -123,7 +123,7 @@ export async function syncDrive(
   const transport = new AppsScriptTransport(config.url, config.token);
   try {
     const local = await collectLocalFiles(notesStore.notes);
-    onProgress?.({phase: 'manifest', current: 0, total: 0});
+    onProgress?.({ phase: 'manifest', current: 0, total: 0 });
     const manifest = await transport.manifest();
     const plan = planSync(local.files, manifest.files ?? []);
     const total = plan.uploads.length + plan.downloads.length;
@@ -139,11 +139,11 @@ export async function syncDrive(
       );
       if (result.hash !== hash) {
         throw new Error(
-          translate('syncService.hashUpload', {path: upload.path}),
+          translate('syncService.hashUpload', { path: upload.path }),
         );
       }
       current += 1;
-      onProgress?.({phase: 'upload', current, total});
+      onProgress?.({ phase: 'upload', current, total });
     }
 
     for (const download of plan.downloads) {
@@ -152,12 +152,12 @@ export async function syncDrive(
       const hash = await sha256Hex(bytes);
       if (result.hash && result.hash !== hash) {
         throw new Error(
-          translate('syncService.hashDownload', {path: download.path}),
+          translate('syncService.hashDownload', { path: download.path }),
         );
       }
       await noteRepository.writeSyncFile(download.path, bytes);
       current += 1;
-      onProgress?.({phase: 'download', current, total});
+      onProgress?.({ phase: 'download', current, total });
     }
 
     if (plan.downloads.length > 0) {

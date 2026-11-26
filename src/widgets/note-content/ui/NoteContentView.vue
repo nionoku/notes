@@ -18,18 +18,25 @@
  * @fileoverview Отрисовка markdown-документа и интерактивных элементов.
  */
 
-import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue';
-import {useI18n} from 'vue-i18n';
-import {useRouter} from 'vue-router';
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-import {noteRepository} from '@/entities/note/api/note-repository';
-import {useNotesStore} from '@/entities/note/model/note-store';
-import {findTaskLines} from '@/entities/note/model/note-tasks';
-import type {Note} from '@/entities/note/model/note-types';
-import {renderMarkdown} from '@/shared/lib/markdown';
+import { noteRepository } from '@/entities/note/api/note-repository';
+import { useNotesStore } from '@/entities/note/model/note-store';
+import { findTaskLines } from '@/entities/note/model/note-tasks';
+import type { Note } from '@/entities/note/model/note-types';
+import { renderMarkdown } from '@/shared/lib/markdown';
 import ImageLightbox from '@/shared/ui/ImageLightbox.vue';
-import {slugifyHeading} from '@/shared/lib/markdown-headings';
-import {documentRoute} from '@/shared/lib/urls';
+import { slugifyHeading } from '@/shared/lib/markdown-headings';
+import { documentRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
   note: Note;
@@ -43,7 +50,7 @@ const emit = defineEmits<{
 const rootRef = ref<HTMLElement | null>(null);
 const notesStore = useNotesStore();
 const router = useRouter();
-const {t} = useI18n();
+const { t } = useI18n();
 const objectUrls: string[] = [];
 const lightboxOpen = ref(false);
 const lightboxSrc = ref('');
@@ -187,7 +194,7 @@ async function enhanceContent(): Promise<void> {
       if (!label || !label.textContent?.trim()) {
         input.setAttribute(
           'aria-label',
-          t('task.checkbox', {number: index + 1}),
+          t('task.checkbox', { number: index + 1 }),
         );
       }
     });
@@ -196,7 +203,7 @@ async function enhanceContent(): Promise<void> {
     const input = root.querySelector<HTMLInputElement>(
       `input[data-task-index="${restoreFocusIndex}"]`,
     );
-    input?.focus({preventScroll: true});
+    input?.focus({ preventScroll: true });
     restoreFocusIndex = null;
   }
 
@@ -222,7 +229,7 @@ async function enhanceContent(): Promise<void> {
     button.setAttribute(
       'aria-label',
       captionText
-        ? t('imageLightbox.openWithCaption', {caption: captionText})
+        ? t('imageLightbox.openWithCaption', { caption: captionText })
         : t('imageLightbox.open'),
     );
     button.title = t('imageLightbox.open');
@@ -314,7 +321,7 @@ function scrollToAnchor(hash: string): void {
         decoded.toLocaleLowerCase('ru'),
     );
 
-  target?.scrollIntoView({block: 'start', behavior: 'auto'});
+  target?.scrollIntoView({ block: 'start', behavior: 'auto' });
 }
 
 function openLightbox(src: string, alt: string): void {
@@ -408,7 +415,7 @@ watch(
       scrollToAnchor(anchor);
     }
   },
-  {immediate: true, flush: 'post'},
+  { immediate: true, flush: 'post' },
 );
 
 onMounted(() => {

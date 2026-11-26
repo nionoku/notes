@@ -9,7 +9,10 @@
       role="group"
       :aria-label="t('toolbar.inlineGroup')"
     >
-      <template v-for="button in inlineButtons" :key="button.action">
+      <template
+        v-for="button in inlineButtons"
+        :key="button.action"
+      >
         <button
           type="button"
           class="editor-toolbar__button"
@@ -20,19 +23,28 @@
           @mousedown.prevent
           @click="emit('action', button.action)"
         >
-          <AppIcon :name="button.icon" :size="18" />
+          <AppIcon
+            :name="button.icon"
+            :size="18"
+          />
         </button>
       </template>
     </div>
 
-    <span class="editor-toolbar__separator" aria-hidden="true"></span>
+    <span
+      class="editor-toolbar__separator"
+      aria-hidden="true"
+    ></span>
 
     <div
       class="editor-toolbar__group"
       role="group"
       :aria-label="t('toolbar.blocksGroup')"
     >
-      <template v-for="button in blockButtons" :key="button.action">
+      <template
+        v-for="button in blockButtons"
+        :key="button.action"
+      >
         <button
           type="button"
           class="editor-toolbar__button"
@@ -42,19 +54,28 @@
           @mousedown.prevent
           @click="emit('action', button.action)"
         >
-          <AppIcon :name="button.icon" :size="18" />
+          <AppIcon
+            :name="button.icon"
+            :size="18"
+          />
         </button>
       </template>
     </div>
 
-    <span class="editor-toolbar__separator" aria-hidden="true"></span>
+    <span
+      class="editor-toolbar__separator"
+      aria-hidden="true"
+    ></span>
 
     <div
       class="editor-toolbar__group"
       role="group"
       :aria-label="t('toolbar.insertGroup')"
     >
-      <template v-for="button in insertButtons" :key="button.action">
+      <template
+        v-for="button in insertButtons"
+        :key="button.action"
+      >
         <button
           type="button"
           class="editor-toolbar__button"
@@ -64,7 +85,10 @@
           @mousedown.prevent
           @click="emit('action', button.action)"
         >
-          <AppIcon :name="button.icon" :size="18" />
+          <AppIcon
+            :name="button.icon"
+            :size="18"
+          />
         </button>
       </template>
     </div>
@@ -76,10 +100,10 @@
  * @fileoverview Панель инструментов markdown-редактора.
  */
 
-import {computed} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import type {ToolbarAction} from '@/widgets/markdown-editor/model/toolbar-actions';
+import type { ToolbarAction } from '@/widgets/markdown-editor/model/toolbar-actions';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
 interface ToolbarButton {
@@ -102,11 +126,16 @@ const props = defineProps<{
 const emit = defineEmits<{
   action: [action: ToolbarAction];
 }>();
-const {t} = useI18n();
+const { t } = useI18n();
 
 const inlineBaseButtons: readonly ToolbarButton[] = [
-  {action: 'bold', icon: 'bold', labelKey: 'toolbar.bold', pressed: true},
-  {action: 'italic', icon: 'italic', labelKey: 'toolbar.italic', pressed: true},
+  { action: 'bold', icon: 'bold', labelKey: 'toolbar.bold', pressed: true },
+  {
+    action: 'italic',
+    icon: 'italic',
+    labelKey: 'toolbar.italic',
+    pressed: true,
+  },
   {
     action: 'underline',
     icon: 'underline',
@@ -119,7 +148,7 @@ const inlineBaseButtons: readonly ToolbarButton[] = [
     labelKey: 'toolbar.strikethrough',
     pressed: true,
   },
-  {action: 'code', icon: 'code', labelKey: 'toolbar.code', pressed: true},
+  { action: 'code', icon: 'code', labelKey: 'toolbar.code', pressed: true },
 ];
 
 const blockBaseButtons: readonly ToolbarButton[] = [
@@ -129,7 +158,7 @@ const blockBaseButtons: readonly ToolbarButton[] = [
     labelKey: 'toolbar.codeBlock',
     pressed: true,
   },
-  {action: 'quote', icon: 'quote', labelKey: 'toolbar.quote', pressed: true},
+  { action: 'quote', icon: 'quote', labelKey: 'toolbar.quote', pressed: true },
   {
     action: 'unordered-list',
     icon: 'list',
@@ -156,8 +185,8 @@ const blockBaseButtons: readonly ToolbarButton[] = [
 ];
 
 const insertBaseButtons: readonly ToolbarButton[] = [
-  {action: 'image', icon: 'image', labelKey: 'toolbar.image'},
-  {action: 'link', icon: 'link', labelKey: 'toolbar.link'},
+  { action: 'image', icon: 'image', labelKey: 'toolbar.image' },
+  { action: 'link', icon: 'link', labelKey: 'toolbar.link' },
   {
     action: 'document-link',
     icon: 'document-link',

@@ -4,10 +4,10 @@
 
 import JSZip from 'jszip';
 
-import {noteRepository} from '@/entities/note/api/note-repository';
-import type {Note} from '@/entities/note/model/note-types';
-import {downloadBlob} from '@/shared/lib/download';
-import {translate} from '@/shared/i18n';
+import { noteRepository } from '@/entities/note/api/note-repository';
+import type { Note } from '@/entities/note/model/note-types';
+import { downloadBlob } from '@/shared/lib/download';
+import { translate } from '@/shared/i18n';
 
 function archiveName(title: string): string {
   const safe = title
@@ -35,7 +35,7 @@ export async function exportNoteArchive(note: Note): Promise<void> {
   const blob = await zip.generateAsync({
     type: 'blob',
     compression: 'DEFLATE',
-    compressionOptions: {level: 6},
+    compressionOptions: { level: 6 },
   });
   downloadBlob(blob, archiveName(note.title));
 }

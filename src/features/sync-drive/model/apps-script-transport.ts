@@ -5,7 +5,7 @@
  * запросы идут через iframe, который использует google.script.run.
  */
 
-import {translate} from '@/shared/i18n';
+import { translate } from '@/shared/i18n';
 import type {
   DownloadResult,
   RemoteManifest,
@@ -121,11 +121,11 @@ export class AppsScriptTransport implements DriveTransport {
     base64: string,
     hash: string,
   ): Promise<UploadResult> {
-    return this.request<UploadResult>('upload', {path, base64, hash});
+    return this.request<UploadResult>('upload', { path, base64, hash });
   }
 
   async download(path: string): Promise<DownloadResult> {
-    return this.request<DownloadResult>('download', {path});
+    return this.request<DownloadResult>('download', { path });
   }
 
   close(): void {
