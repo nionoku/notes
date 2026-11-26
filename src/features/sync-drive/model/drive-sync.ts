@@ -31,11 +31,24 @@ export async function collectLocalFiles(
   const noteHashes = new Map(
     notes.map(note => [`${note.filePath}.md`, note.hash]),
   );
+  const noteDocuments = new Set(noteHashes.keys());
+  const assetPrefixes = notes.map(note =>
+    note.dirPath ? `${note.dirPath}/assets/` : 'assets/',
+  );
   const storedFiles = await noteRepository.listAllFiles();
   const files: LocalSyncFile[] = [];
   let skippedLarge = 0;
 
   for (const stored of storedFiles) {
+    const belongsToNote =
+      noteDocuments.has(stored.path) ||
+      assetPrefixes.some(prefix => stored.path.startsWith(prefix));
+    const hasHiddenSegment = stored.path
+      .split('/')
+      .some(segment => segment.startsWith('.'));
+    if (!belongsToNote || hasHiddenSegment) {
+      continue;
+    }
     if (stored.file.size > MAX_SYNC_FILE_SIZE) {
       skippedLarge += 1;
       continue;
@@ -110,12 +123,9 @@ export async function deleteRemoteNote(
   config: DriveConfig,
   note: Note,
 ): Promise<void> {
-  const files = await noteRepository.collectNoteFiles(note);
   const transport = new AppsScriptTransport(config.url, config.token);
   try {
-    for (const file of files) {
-      await transport.delete(file.path);
-    }
+    await transport.delete(note.id);
   } finally {
     transport.close();
   }

@@ -8,6 +8,7 @@
 const ROOT_FOLDER_NAME = 'Notes Sync';
 const MAX_SYNC_BYTES = 8 * 1024 * 1024;
 const TOKEN_PROPERTY = 'SYNC_TOKEN';
+const HASH_DIRECTORY_PATTERN = /^[0-9a-f]{32}$/i;
 
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('Bridge')
@@ -44,7 +45,7 @@ function bridge(requestJson) {
           result: uploadFile(params.path, params.base64, params.hash),
         };
       case 'delete':
-        return {ok: true, result: deleteFile(params.path)};
+        return {ok: true, result: tombstoneFolder(params.path)};
       default:
         return {ok: false, error: 'Неизвестный метод синхронизации.'};
     }
@@ -67,7 +68,15 @@ function setupSync() {
 
 function buildManifest() {
   const files = [];
-  walkFolder(getRootFolder(), '', files);
+  const root = getRootFolder();
+  const folders = root.getFolders();
+  while (folders.hasNext()) {
+    const folder = folders.next();
+    if (!HASH_DIRECTORY_PATTERN.test(folder.getName())) {
+      continue;
+    }
+    walkFolder(folder, folder.getName() + '/', files);
+  }
   return {files: files};
 }
 
@@ -75,7 +84,11 @@ function walkFolder(folder, prefix, files) {
   const fileIterator = folder.getFiles();
   while (fileIterator.hasNext()) {
     const file = fileIterator.next();
-    if (file.isTrashed() || isDeletedName(file.getName())) {
+    if (
+      file.isTrashed() ||
+      isDeletedName(file.getName()) ||
+      isHiddenName(file.getName())
+    ) {
       continue;
     }
     const size = file.getSize();
@@ -94,7 +107,7 @@ function walkFolder(folder, prefix, files) {
   const folderIterator = folder.getFolders();
   while (folderIterator.hasNext()) {
     const child = folderIterator.next();
-    if (isDeletedName(child.getName())) {
+    if (isDeletedName(child.getName()) || isHiddenName(child.getName())) {
       continue;
     }
     walkFolder(child, prefix + child.getName() + '/', files);
@@ -157,13 +170,30 @@ function isDeletedName(name) {
   return String(name).charAt(0) === '~';
 }
 
-function deleteFile(path) {
-  const file = findFile(path);
-  if (file && !isDeletedName(file.getName())) {
-    // Tombstone: keep the data on Drive but hide it from the sync manifest.
-    file.setName('~' + file.getName());
+function isHiddenName(name) {
+  return String(name).charAt(0) === '.';
+}
+
+function findFolder(path) {
+  let folder = getRootFolder();
+  const segments = splitPath(path);
+  for (let index = 0; index < segments.length; index += 1) {
+    const iterator = folder.getFoldersByName(segments[index]);
+    if (!iterator.hasNext()) {
+      return null;
+    }
+    folder = iterator.next();
   }
-  return {path: path, deleted: Boolean(file)};
+  return folder;
+}
+
+function tombstoneFolder(path) {
+  const folder = findFolder(path);
+  if (folder && !isDeletedName(folder.getName())) {
+    // Keep the folder and all its contents on Drive, but hide it from sync.
+    folder.setName('~' + folder.getName());
+  }
+  return {path: path, deleted: Boolean(folder)};
 }
 
 function getRootFolder() {

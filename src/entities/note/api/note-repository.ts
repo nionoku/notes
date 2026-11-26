@@ -262,12 +262,19 @@ interface StoredMarkdownEntry {
   readonly handle: FileSystemFileHandle;
 }
 
+function isHiddenName(name: string): boolean {
+  return name.startsWith('.');
+}
+
 async function collectMarkdownEntries(
   directory: FileSystemDirectoryHandle,
   segments: readonly string[] = [],
   entries: StoredMarkdownEntry[] = [],
 ): Promise<StoredMarkdownEntry[]> {
   for await (const [name, handle] of directory.entries()) {
+    if (isHiddenName(name)) {
+      continue;
+    }
     if (handle.kind === 'file') {
       if (isMarkdownFileName(name)) {
         entries.push({ segments, name, handle });
@@ -363,6 +370,9 @@ class NoteRepository {
       segments: readonly string[],
     ): Promise<void> => {
       for await (const [name, handle] of directory.entries()) {
+        if (isHiddenName(name)) {
+          continue;
+        }
         if (handle.kind === 'file') {
           if (!isMarkdownFileName(name)) {
             continue;
