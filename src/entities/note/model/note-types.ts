@@ -2,6 +2,8 @@
  * @fileoverview Типы сущности «документ».
  */
 
+export type NoteState = 'active' | 'archived';
+
 export interface Note {
   /** Публичный путь документа (для URL и ссылок), без расширения `.md`. */
   readonly path: string;
@@ -17,6 +19,8 @@ export interface Note {
   readonly modifiedAt: string;
   /** Срок выполнения; пустая строка — срок не задан. */
   readonly dueAt: string;
+  /** Состояние документа: обычный или архивный. */
+  readonly state: NoteState;
   /** Документ был импортирован и ещё не изменялся в приложении. */
   readonly imported: boolean;
   /** SHA-256 содержимого markdown-файла. */
@@ -33,6 +37,7 @@ export interface NoteDraft {
   readonly tags: readonly string[];
   readonly body: string;
   readonly dueAt?: string;
+  readonly state?: NoteState;
 }
 
 export interface PendingAsset {

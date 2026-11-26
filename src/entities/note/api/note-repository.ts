@@ -38,11 +38,14 @@ import {
 import type {
   Note,
   NoteDraft,
+  NoteState,
   PendingAsset,
 } from '@/entities/note/model/note-types';
 import {toIsoDate, toOptionalIsoDate} from '@/shared/lib/date';
 import {sha256Hex} from '@/shared/lib/hash';
 import {translate} from '@/shared/i18n';
+
+const LEGACY_ARCHIVE_TAG = 'Архив';
 
 export class DocumentValidationError extends Error {
   override name = 'DocumentValidationError';
@@ -113,6 +116,13 @@ function buildNote(
         : updatedAt
       : '';
   const dueAt = toOptionalIsoDate(parsed.frontmatter['due']);
+  const storedTags = normalizeTags(parsed.frontmatter['tags']);
+  const legacyArchived = storedTags.includes(LEGACY_ARCHIVE_TAG);
+  const state: NoteState =
+    parsed.frontmatter['state'] === 'archived' || legacyArchived
+      ? 'archived'
+      : 'active';
+  const tags = storedTags.filter(tag => tag !== LEGACY_ARCHIVE_TAG);
   const imported =
     parsed.frontmatter['imported'] === true ||
     parsed.frontmatter['imported'] === 'true';
@@ -126,9 +136,10 @@ function buildNote(
     updatedAt,
     modifiedAt,
     dueAt,
+    state,
     imported,
     hash,
-    tags: normalizeTags(parsed.frontmatter['tags']),
+    tags,
     body: parsed.body,
     frontmatter: parsed.frontmatter,
   };
@@ -137,6 +148,7 @@ function buildNote(
 function buildFrontmatter(
   note: Pick<Note, 'frontmatter' | 'createdAt'>,
   dueAt: string,
+  state: NoteState,
   tags: readonly string[],
   now: string,
 ): Record<string, unknown> {
@@ -151,8 +163,14 @@ function buildFrontmatter(
   } else {
     delete frontmatter['due'];
   }
-  if (tags.length > 0) {
-    frontmatter['tags'] = [...tags];
+  if (state === 'archived') {
+    frontmatter['state'] = 'archived';
+  } else {
+    delete frontmatter['state'];
+  }
+  const visibleTags = tags.filter(tag => tag !== LEGACY_ARCHIVE_TAG);
+  if (visibleTags.length > 0) {
+    frontmatter['tags'] = [...visibleTags];
   } else {
     delete frontmatter['tags'];
   }
@@ -293,6 +311,7 @@ class NoteRepository {
     const frontmatter = buildFrontmatter(
       {frontmatter: {}, createdAt: now},
       draft.dueAt ?? '',
+      draft.state ?? 'active',
       normalizeTags(draft.tags),
       now,
     );
@@ -382,6 +401,7 @@ class NoteRepository {
     const frontmatter = buildFrontmatter(
       note,
       draft.dueAt ?? '',
+      draft.state ?? note.state,
       normalizeTags(draft.tags),
       now,
     );
@@ -458,7 +478,13 @@ class NoteRepository {
     }
 
     const now = new Date().toISOString();
-    const frontmatter = buildFrontmatter(note, note.dueAt, note.tags, now);
+    const frontmatter = buildFrontmatter(
+      note,
+      note.dueAt,
+      note.state,
+      note.tags,
+      now,
+    );
     await writeFileText(
       fileHandle,
       serializeMarkdownDocument(note.path, frontmatter, body),

@@ -135,6 +135,24 @@ export const useNotesStore = defineStore('notes', () => {
     return note;
   }
 
+  async function setArchived(note: Note, archived: boolean): Promise<Note> {
+    const state = archived ? 'archived' : 'active';
+    if (note.state === state) {
+      return note;
+    }
+    const updated = await noteRepository.update(note, {
+      title: note.title,
+      tags: note.tags,
+      body: note.body,
+      dueAt: note.dueAt,
+      state,
+    });
+    notes.value = notes.value.map(item =>
+      item.path === updated.path ? updated : item,
+    );
+    return updated;
+  }
+
   async function save(note: Note, draft: NoteDraft): Promise<Note> {
     const previous = note;
     const updated = await noteRepository.update(note, draft);
@@ -250,6 +268,7 @@ export const useNotesStore = defineStore('notes', () => {
     loadAll,
     create,
     save,
+    setArchived,
     toggleTask,
     resolveDocumentLink,
   };

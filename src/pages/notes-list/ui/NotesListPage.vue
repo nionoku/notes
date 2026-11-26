@@ -25,8 +25,10 @@
           :query="query"
           :tags="notesStore.allTags"
           :selected-tags="selectedTags"
+          :show-archived="showArchived"
           @update:query="updateQuery"
           @toggle-tag="toggleTag"
+          @update:show-archived="updateShowArchived"
         />
 
         <template v-if="isAnchorMode">
@@ -92,8 +94,14 @@ const headingId = useId();
 const {t} = useI18n();
 const query = ref('');
 const selectedTags = ref<string[]>([]);
+const showArchived = ref(false);
+const visibleNotes = computed(() =>
+  showArchived.value
+    ? notesStore.sortedNotes
+    : notesStore.sortedNotes.filter(note => note.state === 'active'),
+);
 const searchResult = computed(() =>
-  searchDocuments(notesStore.sortedNotes, query.value, selectedTags.value),
+  searchDocuments(visibleNotes.value, query.value, selectedTags.value),
 );
 const showError = computed(() => notesStore.status === 'error');
 const showEmpty = computed(() => notesStore.isEmpty);
@@ -115,6 +123,10 @@ const createUrl = createDocumentRoute();
 
 function updateQuery(value: string): void {
   query.value = value;
+}
+
+function updateShowArchived(value: boolean): void {
+  showArchived.value = value;
 }
 
 function toggleTag(tag: string): void {

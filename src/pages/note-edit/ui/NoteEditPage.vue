@@ -50,9 +50,6 @@
 
         <fieldset class="note-form__fieldset">
           <legend>{{ t('common.tags') }}</legend>
-          <p :id="tagHintId" class="hint">
-            {{ t('noteEdit.tagsHint') }}
-          </p>
           <div class="tag-options" :aria-describedby="tagHintId">
             <template v-for="item in tagItems" :key="item.tag">
               <label class="tag-option" :style="item.style">

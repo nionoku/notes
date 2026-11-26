@@ -39,6 +39,14 @@
         </template>
       </div>
     </template>
+    <label class="notes-search__archive">
+      <input
+        type="checkbox"
+        :checked="showArchived"
+        @change="handleShowArchivedChange"
+      />
+      {{ t('search.showArchived') }}
+    </label>
   </form>
 </template>
 
@@ -56,11 +64,13 @@ const props = defineProps<{
   query: string;
   tags: readonly string[];
   selectedTags: readonly string[];
+  showArchived: boolean;
 }>();
 
 const emit = defineEmits<{
   'update:query': [value: string];
   'toggle-tag': [tag: string];
+  'update:showArchived': [value: boolean];
 }>();
 
 const {t} = useI18n();
@@ -78,6 +88,13 @@ function handleInput(event: Event): void {
   const input = event.target;
   if (input instanceof HTMLInputElement) {
     emit('update:query', input.value);
+  }
+}
+
+function handleShowArchivedChange(event: Event): void {
+  const input = event.target;
+  if (input instanceof HTMLInputElement) {
+    emit('update:showArchived', input.checked);
   }
 }
 </script>
@@ -101,6 +118,19 @@ function handleInput(event: Event): void {
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
+}
+
+.notes-search__archive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-self: start;
+  font-size: 0.875rem;
+}
+
+.notes-search__archive input {
+  inline-size: auto;
+  accent-color: var(--color-accent);
 }
 
 .notes-search__tags {

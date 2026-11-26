@@ -25,6 +25,17 @@
               <button
                 type="button"
                 class="button-link note__action"
+                :disabled="archiving"
+                :aria-label="archiveActionLabel"
+                :title="archiveActionLabel"
+                @click="toggleArchive"
+              >
+                <AppIcon name="archive" :size="18" />
+                <span class="note__action-label">{{ archiveActionLabel }}</span>
+              </button>
+              <button
+                type="button"
+                class="button-link note__action"
                 :disabled="exporting"
                 :aria-label="t('noteView.export')"
                 :title="t('noteView.exportTitle')"
@@ -164,6 +175,7 @@ const statusFailed = ref(false);
 const statusAnnouncement = ref('');
 const statusRef = ref<HTMLElement | null>(null);
 const exporting = ref(false);
+const archiving = ref(false);
 let statusTimer: number | undefined;
 let lastFocused: HTMLElement | null = null;
 
@@ -222,6 +234,10 @@ function handleStatusFocusOut(event: FocusEvent): void {
 }
 
 const note = computed(() => notesStore.getByPath(props.path));
+const isArchived = computed(() => note.value?.state === 'archived');
+const archiveActionLabel = computed(() =>
+  isArchived.value ? t('noteView.unarchive') : t('noteView.archive'),
+);
 
 async function exportNote(): Promise<void> {
   const current = note.value;
@@ -240,6 +256,24 @@ async function exportNote(): Promise<void> {
     );
   } finally {
     exporting.value = false;
+  }
+}
+
+async function toggleArchive(): Promise<void> {
+  const current = note.value;
+  if (!current || archiving.value) {
+    return;
+  }
+
+  const archived = !isArchived.value;
+  archiving.value = true;
+  try {
+    await notesStore.setArchived(current, archived);
+    showStatus(t(archived ? 'noteView.archived' : 'noteView.unarchived'));
+  } catch (error) {
+    showStatus(describeError(error), true);
+  } finally {
+    archiving.value = false;
   }
 }
 

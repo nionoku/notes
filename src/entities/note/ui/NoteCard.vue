@@ -4,6 +4,9 @@
       <template v-if="hasImported">
         <ImportedMark :size="16" />
       </template>
+      <template v-if="isArchived">
+        <ArchivedMark :size="16" />
+      </template>
       <RouterLink :to="href">{{ note.title }}</RouterLink>
     </h2>
     <template v-if="hasDates">
@@ -41,6 +44,7 @@ import type {Note} from '@/entities/note/model/note-types';
 import NoteDates from '@/entities/note/ui/NoteDates.vue';
 import NoteTags from '@/entities/note/ui/NoteTags.vue';
 import ImportedMark from '@/shared/ui/ImportedMark.vue';
+import ArchivedMark from '@/entities/note/ui/ArchivedMark.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 import {formatDateTime} from '@/shared/lib/date';
 import {documentRoute} from '@/shared/lib/urls';
@@ -51,6 +55,7 @@ const props = defineProps<{
 
 const {t} = useI18n();
 const href = computed(() => documentRoute(props.note.path));
+const isArchived = computed(() => props.note.state === 'archived');
 const hasImported = computed(() => props.note.imported);
 const hasDates = computed(() =>
   Boolean(props.note.createdAt || props.note.modifiedAt),
