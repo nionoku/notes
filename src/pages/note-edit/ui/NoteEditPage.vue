@@ -42,7 +42,17 @@
         @submit.prevent="handleSubmit"
       >
         <div class="note-form__field">
-          <label :for="titleFieldId">{{ t('noteEdit.title') }}</label>
+          <div class="note-form__caption">
+            <label :for="titleFieldId">{{ t('noteEdit.title') }}</label>
+            <template v-if="titleError">
+              <span
+                class="field-error"
+                role="alert"
+              >
+                {{ titleError }}
+              </span>
+            </template>
+          </div>
           <input
             :id="titleFieldId"
             ref="titleInput"
@@ -92,14 +102,25 @@
               </label>
             </template>
           </div>
-          <label
-            class="note-form__custom-tag"
-            :for="newTagFieldId"
-          >
-            {{ t('noteEdit.newTag') }}
-          </label>
+          <div class="note-form__caption">
+            <label
+              class="note-form__custom-tag"
+              :for="newTagFieldId"
+            >
+              {{ t('noteEdit.newTag') }}
+            </label>
+            <template v-if="tagError">
+              <span
+                class="field-error"
+                role="alert"
+              >
+                {{ tagError }}
+              </span>
+            </template>
+          </div>
           <input
             :id="newTagFieldId"
+            ref="newTagInput"
             v-model="newTag"
             name="newTag"
             type="text"
@@ -111,6 +132,7 @@
             maxlength="50"
             :placeholder="t('noteEdit.newTagPlaceholder')"
             :aria-describedby="tagHintId"
+            :aria-invalid="tagInvalid"
             @keydown="handleTagKeydown"
             @input="handleNewTagInput"
           />
@@ -129,7 +151,17 @@
           </label>
           <template v-if="dueEnabled">
             <div class="note-form__field">
-              <label :for="dueId">{{ t('noteEdit.dueField') }}</label>
+              <div class="note-form__caption">
+                <label :for="dueId">{{ t('noteEdit.dueField') }}</label>
+                <template v-if="dueError">
+                  <span
+                    class="field-error"
+                    role="alert"
+                  >
+                    {{ dueError }}
+                  </span>
+                </template>
+              </div>
               <input
                 :id="dueId"
                 ref="dueInput"
@@ -138,6 +170,8 @@
                 type="datetime-local"
                 step="60"
                 required
+                :aria-invalid="dueInvalid"
+                @input="clearDueError"
               />
             </div>
           </template>
@@ -231,7 +265,10 @@ import {
 import { useI18n } from 'vue-i18n';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 
-import { noteRepository } from '@/entities/note/api/note-repository';
+import {
+  DocumentExistsError,
+  noteRepository,
+} from '@/entities/note/api/note-repository';
 import { useNotesStore, describeError } from '@/entities/note/model/note-store';
 import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import {
@@ -276,7 +313,11 @@ const leaveDialogOpen = ref(false);
 let leaveResolver: ((value: boolean) => void) | null = null;
 const saving = ref(false);
 const error = ref<string | null>(null);
+const titleError = ref<string | null>(null);
+const tagError = ref<string | null>(null);
+const dueError = ref<string | null>(null);
 const titleInput = ref<HTMLInputElement | null>(null);
+const newTagInput = ref<HTMLInputElement | null>(null);
 const dueInput = ref<HTMLInputElement | null>(null);
 const dueEnabled = ref(false);
 const dueValue = ref('');
@@ -304,7 +345,9 @@ const showError = computed(
 const showMissing = computed(
   () => !isCreate.value && notesStore.status === 'ready' && !note.value,
 );
-const titleInvalid = computed(() => (error.value ? 'true' : undefined));
+const titleInvalid = computed(() => (titleError.value ? 'true' : undefined));
+const tagInvalid = computed(() => (tagError.value ? 'true' : undefined));
+const dueInvalid = computed(() => (dueError.value ? 'true' : undefined));
 const editorDocumentPath = computed(() => note.value?.path ?? '');
 const tagOptions = computed(() => {
   const tags = new Set(notesStore.allTags);
@@ -383,6 +426,9 @@ watch(
   () => {
     initialized.value = false;
     error.value = null;
+    titleError.value = null;
+    tagError.value = null;
+    dueError.value = null;
     initialize();
   },
   { immediate: true },
@@ -391,6 +437,7 @@ watch(
 watch([() => notesStore.status, note], () => initialize());
 
 function handleTitleInput(event: Event): void {
+  titleError.value = null;
   const input = event.target;
   if (!(input instanceof HTMLInputElement)) {
     return;
@@ -431,9 +478,7 @@ function addTag(tag: string): void {
     selectedTags.value = [...selectedTags.value, tag];
   }
   newTag.value = '';
-  if (error.value === t('noteEdit.tagTooLong')) {
-    error.value = null;
-  }
+  tagError.value = null;
 }
 
 function commitTag(): void {
@@ -442,7 +487,8 @@ function commitTag(): void {
     return;
   }
   if (tag.length > 50) {
-    error.value = t('noteEdit.tagTooLong');
+    tagError.value = t('noteEdit.tagTooLong');
+    void nextTick(() => newTagInput.value?.focus());
     return;
   }
   addTag(tag);
@@ -462,12 +508,15 @@ function clearNewTag(): void {
 }
 
 function handleNewTagInput(): void {
-  if (error.value === t('noteEdit.tagTooLong')) {
-    error.value = null;
-  }
+  tagError.value = null;
+}
+
+function clearDueError(): void {
+  dueError.value = null;
 }
 
 function handleDueToggle(): void {
+  dueError.value = null;
   if (dueEnabled.value && !dueValue.value) {
     dueValue.value = toDateTimeLocal(
       new Date(Date.now() + 60 * 60 * 1_000).toISOString(),
@@ -512,16 +561,20 @@ async function handleSubmit(): Promise<void> {
   }
 
   error.value = null;
+  titleError.value = null;
+  tagError.value = null;
+  dueError.value = null;
   const validationError = validateDocumentTitle(title.value);
   if (validationError) {
-    error.value = validationError;
+    titleError.value = validationError;
     void nextTick(() => titleInput.value?.focus());
     return;
   }
 
   const pendingTag = normalizeTag(newTag.value);
   if (pendingTag.length > 50) {
-    error.value = t('noteEdit.tagTooLong');
+    tagError.value = t('noteEdit.tagTooLong');
+    void nextTick(() => newTagInput.value?.focus());
     return;
   }
   if (pendingTag) {
@@ -531,13 +584,13 @@ async function handleSubmit(): Promise<void> {
   let dueAt = '';
   if (dueEnabled.value) {
     if (!dueValue.value) {
-      error.value = t('noteEdit.dueRequired');
+      dueError.value = t('noteEdit.dueRequired');
       void nextTick(() => dueInput.value?.focus());
       return;
     }
     dueAt = fromDateTimeLocal(dueValue.value);
     if (!dueAt) {
-      error.value = t('noteEdit.dueRequired');
+      dueError.value = t('noteEdit.dueRequired');
       void nextTick(() => dueInput.value?.focus());
       return;
     }
@@ -570,7 +623,12 @@ async function handleSubmit(): Promise<void> {
     allowNavigation.value = true;
     await router.push(documentRoute(updated.path));
   } catch (saveError) {
-    error.value = describeError(saveError);
+    if (saveError instanceof DocumentExistsError) {
+      titleError.value = describeError(saveError);
+      void nextTick(() => titleInput.value?.focus());
+    } else {
+      error.value = describeError(saveError);
+    }
   } finally {
     saving.value = false;
   }
@@ -686,14 +744,21 @@ function retry(): void {
   gap: 0.3rem;
 }
 
-.note-form__field > label,
+.note-form__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.note-form__caption>label,
 .note-form__fieldset legend {
   padding: 0;
   font-weight: 600;
 }
 
 .note-form__field input,
-.note-form__custom-tag + input {
+.note-form__custom-tag+input {
   inline-size: 100%;
   min-block-size: 2.5rem;
   padding: 0.45rem 0.6rem;
@@ -702,8 +767,14 @@ function retry(): void {
   background: var(--color-surface);
 }
 
-.note-form__field input[aria-invalid='true'] {
+.note-form__field input[aria-invalid='true'],
+.note-form__custom-tag+input[aria-invalid='true'] {
   border-color: var(--color-danger);
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-weight: 400;
 }
 
 .note-form__checkbox {
@@ -734,13 +805,8 @@ function retry(): void {
 
 .tag-option {
   --tag-color: hsl(var(--tag-hue) var(--tag-saturation) var(--tag-lightness));
-  --tag-background: hsl(
-    var(--tag-hue) var(--tag-bg-saturation) var(--tag-bg-lightness)
-  );
-  --tag-background-strong: hsl(
-    var(--tag-hue) var(--tag-bg-strong-saturation)
-      var(--tag-bg-strong-lightness)
-  );
+  --tag-background: hsl(var(--tag-hue) var(--tag-bg-saturation) var(--tag-bg-lightness));
+  --tag-background-strong: hsl(var(--tag-hue) var(--tag-bg-strong-saturation) var(--tag-bg-strong-lightness));
 
   display: inline-flex;
   align-items: center;
