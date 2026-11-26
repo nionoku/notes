@@ -4,13 +4,26 @@
 
 import { createI18n } from 'vue-i18n';
 
+import en from '@/shared/i18n/messages/en';
 import ru from '@/shared/i18n/messages/ru';
+
+function detectLocale(): 'ru' | 'en' {
+  if (typeof navigator === 'undefined') {
+    return 'en';
+  }
+  const languages = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language];
+  return languages.some(language => language.toLowerCase().startsWith('ru'))
+    ? 'ru'
+    : 'en';
+}
 
 export const i18n = createI18n({
   legacy: false,
-  locale: 'ru',
-  fallbackLocale: 'ru',
-  messages: { ru },
+  locale: detectLocale(),
+  fallbackLocale: 'en',
+  messages: { en, ru },
   globalInjection: true,
   warnHtmlMessage: false,
   pluralRules: {

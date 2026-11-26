@@ -19,7 +19,7 @@ export default defineConfig({
         name: 'Notes',
         short_name: 'Notes',
         description: 'Локальная база знаний в формате Markdown',
-        lang: 'ru',
+        lang: 'en',
         start_url: base,
         scope: base,
         display: 'standalone',
