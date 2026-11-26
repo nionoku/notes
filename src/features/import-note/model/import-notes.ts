@@ -75,7 +75,7 @@ async function writeMarkdown(imported: MarkdownImport): Promise<void> {
     ),
   };
   const serialized = serializeMarkdownDocument(
-    documentPath,
+    parsed.title,
     frontmatter,
     parsed.body,
   );

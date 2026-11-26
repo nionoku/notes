@@ -92,7 +92,11 @@ When hosting `dist/` on another static server, configure an SPA fallback to
 ## 💾 Data and Sync
 
 - Documents and assets are stored in OPFS, scoped to the app's origin.
-- Markdown uses YAML frontmatter for tags, dates, archive state, and due dates.
+- Every note has a stable unique `id`. Its Markdown file lives at
+  `<id>/<id>.md`, with assets in `<id>/assets/`. Renaming a note updates its
+  title and public path, but keeps the storage path stable.
+- Markdown uses YAML frontmatter for the `id`, title, public path, tags, dates,
+  archive state, and due dates.
 - Export to ZIP regularly if you need an external backup.
 - Google Drive sync is optional; setup instructions are in
   [`.sync-services/drive/README.md`](.sync-services/drive/README.md).

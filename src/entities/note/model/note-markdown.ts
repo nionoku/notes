@@ -12,6 +12,7 @@ import {
 export interface ParsedMarkdownDocument {
   readonly frontmatter: Readonly<Record<string, unknown>>;
   readonly body: string;
+  readonly title: string;
 }
 
 const FRONTMATTER_PATTERN =
@@ -42,9 +43,9 @@ function stripDuplicateTitle(body: string, title: string): string {
 
 export function parseMarkdownDocument(
   raw: string,
-  path: string,
+  fallbackTitle: string,
 ): ParsedMarkdownDocument {
-  const title = stripDocumentExtension(documentTitle(path));
+  const fallback = stripDocumentExtension(documentTitle(fallbackTitle));
   let frontmatter: Record<string, unknown> = {};
   let body = raw;
 
@@ -63,8 +64,13 @@ export function parseMarkdownDocument(
     }
   }
 
+  const storedTitle =
+    typeof frontmatter['title'] === 'string' ? frontmatter['title'].trim() : '';
+  const title = storedTitle || fallback;
+
   return {
     frontmatter,
+    title,
     body: stripDuplicateTitle(body, title).replace(/\r\n/g, '\n'),
   };
 }
@@ -94,11 +100,11 @@ export function normalizeTags(value: unknown): string[] {
 }
 
 export function serializeMarkdownDocument(
-  path: string,
+  title: string,
   frontmatter: Readonly<Record<string, unknown>>,
   body: string,
 ): string {
-  const title = stripDocumentExtension(documentTitle(path));
+  const documentTitle = title.trim() || 'Untitled';
   const data: Record<string, unknown> = { ...frontmatter };
   if (Array.isArray(data['tags']) && data['tags'].length === 0) {
     delete data['tags'];
@@ -108,7 +114,7 @@ export function serializeMarkdownDocument(
   const yaml = hasFrontmatter
     ? stringifyYaml(data, { lineWidth: 0 }).trimEnd()
     : '';
-  const titleHeading = `# ${title}`;
+  const titleHeading = `# ${documentTitle}`;
   const content = body.replace(/^\s*\r?\n/, '').replace(/\s+$/, '');
 
   return [hasFrontmatter ? `---\n${yaml}\n---` : '', titleHeading, content]

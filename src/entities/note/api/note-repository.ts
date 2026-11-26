@@ -1,10 +1,9 @@
 /**
  * @fileoverview Хранилище документов в OPFS.
  *
- * Новый документ располагается в собственной директории:
- * `<Заголовок>/<Заголовок>.md`, изображения — в `<Заголовок>/assets`.
- * Публичный путь документа совпадает с директорией (`/Заголовок`), а
- * `filePath` хранит фактический путь markdown-файла.
+ * Новый документ хранится в стабильной директории с уникальным id:
+ * `<id>/<id>.md`, изображения — в `<id>/assets`. Публичный путь (URL и
+ * ссылки) хранится в frontmatter и не совпадает с путём хранения.
  */
 
 import {
@@ -27,10 +26,9 @@ import {
 } from '@/entities/note/model/note-markdown';
 import {
   DOCUMENT_EXTENSION,
-  documentTitle,
+  documentDirPath,
   isMarkdownFileName,
   joinPath,
-  parentDirPath,
   sanitizeAssetFileName,
   validateAssetRelativePath,
   validateDocumentTitle,
@@ -81,15 +79,58 @@ async function readMarkdownFile(
   };
 }
 
+function newStorageId(): string {
+  if (typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID().replace(/-/g, '');
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+}
+
+function normalizePublicPath(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') {
+    return fallback;
+  }
+  const path = value.trim().replace(/^\/+|\/+$/g, '');
+  if (!path) {
+    return fallback;
+  }
+  const segments = path.split('/');
+  if (
+    segments.some(
+      segment =>
+        !segment ||
+        segment === '.' ||
+        segment === '..' ||
+        segment.includes('\\'),
+    )
+  ) {
+    return fallback;
+  }
+  return path;
+}
+
+function legacyPublicPath(
+  segments: readonly string[],
+  fileTitle: string,
+): string {
+  const directoryPath = segments.join('/');
+  const filePath = joinPath(directoryPath, fileTitle);
+  const ownDirectory =
+    segments.length > 0 && segments[segments.length - 1] === fileTitle;
+  return ownDirectory ? directoryPath : filePath;
+}
+
 function buildNote(
-  path: string,
+  id: string,
   filePath: string,
   dirPath: string,
   raw: string,
   lastModified: number,
   hash: string,
+  fallbackPath: string,
 ): Note {
-  const parsed = parseMarkdownDocument(raw, path);
+  const parsed = parseMarkdownDocument(raw, fallbackPath);
+  const path = normalizePublicPath(parsed.frontmatter['path'], fallbackPath);
   const modifiedDate = new Date(lastModified).toISOString();
   const hasCreated = Object.prototype.hasOwnProperty.call(
     parsed.frontmatter,
@@ -128,10 +169,11 @@ function buildNote(
     parsed.frontmatter['imported'] === 'true';
 
   return {
+    id,
     path,
     filePath,
     dirPath,
-    title: documentTitle(path),
+    title: parsed.title,
     createdAt,
     updatedAt,
     modifiedAt,
@@ -146,14 +188,19 @@ function buildNote(
 }
 
 function buildFrontmatter(
-  note: Pick<Note, 'frontmatter' | 'createdAt'>,
+  note: Pick<Note, 'id' | 'frontmatter' | 'createdAt'>,
   dueAt: string,
   state: NoteState,
   tags: readonly string[],
   now: string,
+  title: string,
+  path: string,
 ): Record<string, unknown> {
   const frontmatter: Record<string, unknown> = {
     ...note.frontmatter,
+    id: note.id,
+    title,
+    path,
     created: note.createdAt,
     updated: now,
   };
@@ -186,20 +233,6 @@ function splitPath(path: string): {
   return { dir: segments, name };
 }
 
-function pathSegments(path: string): string[] {
-  return path.split('/').filter(Boolean);
-}
-
-async function directoryEntries(
-  directory: FileSystemDirectoryHandle,
-): Promise<[string, FileSystemHandle][]> {
-  const entries: [string, FileSystemHandle][] = [];
-  for await (const entry of directory.entries()) {
-    entries.push(entry);
-  }
-  return entries;
-}
-
 async function ensureUniqueAssetName(
   assets: FileSystemDirectoryHandle,
   requestedName: string,
@@ -223,9 +256,106 @@ async function ensureUniqueAssetName(
   return `${base}-${Date.now()}${extension}`;
 }
 
+interface StoredMarkdownEntry {
+  readonly segments: readonly string[];
+  readonly name: string;
+  readonly handle: FileSystemFileHandle;
+}
+
+async function collectMarkdownEntries(
+  directory: FileSystemDirectoryHandle,
+  segments: readonly string[] = [],
+  entries: StoredMarkdownEntry[] = [],
+): Promise<StoredMarkdownEntry[]> {
+  for await (const [name, handle] of directory.entries()) {
+    if (handle.kind === 'file') {
+      if (isMarkdownFileName(name)) {
+        entries.push({ segments, name, handle });
+      }
+      continue;
+    }
+    if (name === 'assets') {
+      continue;
+    }
+    await collectMarkdownEntries(handle, [...segments, name], entries);
+  }
+  return entries;
+}
+
+async function migrateLegacyNotes(
+  root: FileSystemDirectoryHandle,
+): Promise<void> {
+  const entries = await collectMarkdownEntries(root);
+
+  for (const entry of entries) {
+    const read = await readMarkdownFile(entry.handle);
+    const fallbackTitle = entry.name.slice(0, -DOCUMENT_EXTENSION.length);
+    const parsed = parseMarkdownDocument(read.text, fallbackTitle);
+    const storedId =
+      typeof parsed.frontmatter['id'] === 'string'
+        ? parsed.frontmatter['id'].trim()
+        : '';
+    const conventional =
+      storedId.length > 0 &&
+      entry.segments.length === 1 &&
+      entry.segments[0] === storedId &&
+      entry.name === `${storedId}${DOCUMENT_EXTENSION}`;
+    if (conventional) {
+      continue;
+    }
+
+    const existingIdDirectory = storedId
+      ? await getDirectoryIfExists(root, [storedId])
+      : null;
+    const id = storedId && !existingIdDirectory ? storedId : newStorageId();
+    const fallbackPath = legacyPublicPath(entry.segments, fallbackTitle);
+    const path = normalizePublicPath(parsed.frontmatter['path'], fallbackPath);
+    const legacyDirectory = await getDirectory(root, entry.segments, false);
+    let createdDirectory = false;
+
+    try {
+      const directory = await root.getDirectoryHandle(id, { create: true });
+      createdDirectory = true;
+      const fileHandle = await directory.getFileHandle(
+        `${id}${DOCUMENT_EXTENSION}`,
+        { create: true },
+      );
+      await writeFileText(
+        fileHandle,
+        serializeMarkdownDocument(
+          parsed.title,
+          {
+            ...parsed.frontmatter,
+            id,
+            title: parsed.title,
+            path,
+          },
+          parsed.body,
+        ),
+      );
+
+      const legacyAssets = await getDirectoryIfExists(legacyDirectory, [
+        'assets',
+      ]);
+      if (legacyAssets) {
+        const assets = await directory.getDirectoryHandle('assets', {
+          create: true,
+        });
+        await copyDirectory(legacyAssets, assets);
+      }
+      await removeFile(legacyDirectory, entry.name);
+    } catch {
+      if (createdDirectory) {
+        await removeDirectory(root, id);
+      }
+    }
+  }
+}
+
 class NoteRepository {
   async list(): Promise<Note[]> {
     const root = await getStorageRoot();
+    await migrateLegacyNotes(root);
     const notes: Note[] = [];
 
     const walk = async (
@@ -241,17 +371,21 @@ class NoteRepository {
           const fileTitle = name.slice(0, -DOCUMENT_EXTENSION.length);
           const directoryPath = segments.join('/');
           const filePath = joinPath(directoryPath, fileTitle);
-          const ownDirectory =
-            segments.length > 0 && segments[segments.length - 1] === fileTitle;
-          const path = ownDirectory ? directoryPath : filePath;
+          const fallbackPath = legacyPublicPath(segments, fileTitle);
+          const parsed = parseMarkdownDocument(read.text, fallbackPath);
+          const storedId =
+            typeof parsed.frontmatter['id'] === 'string'
+              ? parsed.frontmatter['id'].trim()
+              : '';
           notes.push(
             buildNote(
-              path,
+              storedId || newStorageId(),
               filePath,
               directoryPath,
               read.text,
               read.lastModified,
               read.hash,
+              fallbackPath,
             ),
           );
           continue;
@@ -277,67 +411,51 @@ class NoteRepository {
       throw new DocumentValidationError(validationError);
     }
 
-    const root = await getStorageRoot();
-    const existingDirectory = await getDirectoryIfExists(root, [title]);
-    if (
-      !existingDirectory &&
-      (await getFileIfExists(root, `${title}${DOCUMENT_EXTENSION}`))
-    ) {
+    const existingNotes = await this.list();
+    if (existingNotes.some(note => note.path === title)) {
       throw new DocumentExistsError(
         translate('errors.documentExists', { title }),
       );
     }
-    if (existingDirectory) {
-      const entries = await directoryEntries(existingDirectory);
-      const onlyDraftAssets =
-        entries.length === 0 ||
-        entries.every(
-          ([name, handle]) => name === 'assets' && handle.kind === 'directory',
-        );
-      if (!onlyDraftAssets) {
-        throw new DocumentExistsError(
-          translate('errors.documentExists', { title }),
-        );
-      }
-    }
 
-    const directory =
-      existingDirectory ??
-      (await root.getDirectoryHandle(title, { create: true }));
+    const root = await getStorageRoot();
+    const id = newStorageId();
+    const directory = await root.getDirectoryHandle(id, { create: true });
     const now = new Date().toISOString();
     const path = title;
-    const dirPath = title;
-    const filePath = joinPath(title, title);
+    const dirPath = id;
+    const filePath = joinPath(id, id);
     const frontmatter = buildFrontmatter(
-      { frontmatter: {}, createdAt: now },
+      { id, frontmatter: {}, createdAt: now },
       draft.dueAt ?? '',
       draft.state ?? 'active',
       normalizeTags(draft.tags),
       now,
+      title,
+      path,
     );
     const fileHandle = await directory.getFileHandle(
-      `${title}${DOCUMENT_EXTENSION}`,
-      {
-        create: true,
-      },
+      `${id}${DOCUMENT_EXTENSION}`,
+      { create: true },
     );
     await writeFileText(
       fileHandle,
-      serializeMarkdownDocument(path, frontmatter, draft.body),
+      serializeMarkdownDocument(title, frontmatter, draft.body),
     );
 
     for (const asset of assets) {
-      await this.writeAsset(title, asset.file, asset.fileName);
+      await this.writeAsset(id, asset.file, asset.fileName);
     }
 
     const read = await readMarkdownFile(fileHandle);
     return buildNote(
-      path,
+      id,
       filePath,
       dirPath,
       read.text,
       read.lastModified,
       read.hash,
+      path,
     );
   }
 
@@ -348,53 +466,27 @@ class NoteRepository {
       throw new DocumentValidationError(validationError);
     }
 
+    const parent = documentDirPath(note.path);
+    const path = parent ? joinPath(parent, title) : title;
+    const existingNotes = await this.list();
+    if (existingNotes.some(item => item.id !== note.id && item.path === path)) {
+      throw new DocumentExistsError(
+        translate('errors.documentExists', { title }),
+      );
+    }
+
     const root = await getStorageRoot();
-    const sameTitle = title === note.title;
-    const ownDirectory = note.dirPath !== '' && note.path === note.dirPath;
-    const oldDirectorySegments = pathSegments(note.dirPath);
-    const oldDirectory = await getDirectory(root, oldDirectorySegments, false);
-    let targetDirectory = oldDirectory;
-    let targetPath = note.path;
-    let targetFilePath = note.filePath;
-    let targetDirPath = note.dirPath;
-    let newDirectorySegments: readonly string[] | null = null;
-
-    if (!sameTitle) {
-      if (ownDirectory) {
-        newDirectorySegments = [
-          ...pathSegments(parentDirPath(note.dirPath)),
-          title,
-        ];
-        const existing = await getDirectoryIfExists(root, newDirectorySegments);
-        const newParent = await getDirectory(
-          root,
-          newDirectorySegments.slice(0, -1),
-          false,
-        );
-        if (
-          existing ||
-          (await getFileIfExists(newParent, `${title}${DOCUMENT_EXTENSION}`))
-        ) {
-          throw new DocumentExistsError(
-            translate('errors.documentExists', { title }),
-          );
-        }
-
-        targetDirectory = await getDirectory(root, newDirectorySegments, true);
-        targetDirPath = joinPath(...newDirectorySegments);
-        targetPath = targetDirPath;
-        targetFilePath = joinPath(targetDirPath, title);
-      } else {
-        targetDirPath = note.dirPath;
-        targetPath = joinPath(note.dirPath, title);
-        targetFilePath = targetPath;
-        const targetName = `${title}${DOCUMENT_EXTENSION}`;
-        if (await getFileIfExists(targetDirectory, targetName)) {
-          throw new DocumentExistsError(
-            translate('errors.documentExists', { title }),
-          );
-        }
-      }
+    const { dir, name } = splitPath(note.filePath);
+    const directory = await getDirectoryIfExists(root, dir);
+    if (!directory) {
+      throw new DocumentNotFoundError(note.path);
+    }
+    const fileHandle = await getFileIfExists(
+      directory,
+      `${name}${DOCUMENT_EXTENSION}`,
+    );
+    if (!fileHandle) {
+      throw new DocumentNotFoundError(note.path);
     }
 
     const now = new Date().toISOString();
@@ -404,61 +496,23 @@ class NoteRepository {
       draft.state ?? note.state,
       normalizeTags(draft.tags),
       now,
+      title,
+      path,
     );
-    let fileHandle: FileSystemFileHandle;
-
-    try {
-      if (!sameTitle && ownDirectory) {
-        await copyDirectory(oldDirectory, targetDirectory, {
-          from: `${note.title}${DOCUMENT_EXTENSION}`,
-          to: `${title}${DOCUMENT_EXTENSION}`,
-        });
-      }
-      fileHandle = await targetDirectory.getFileHandle(
-        `${title}${DOCUMENT_EXTENSION}`,
-        {
-          create: true,
-        },
-      );
-      await writeFileText(
-        fileHandle,
-        serializeMarkdownDocument(targetPath, frontmatter, draft.body),
-      );
-    } catch (error) {
-      if (newDirectorySegments) {
-        const parent = await getDirectory(
-          root,
-          newDirectorySegments.slice(0, -1),
-          false,
-        );
-        await removeDirectory(parent, title);
-      }
-      throw error;
-    }
-
-    if (!sameTitle) {
-      if (ownDirectory) {
-        const oldParent = await getDirectory(
-          root,
-          oldDirectorySegments.slice(0, -1),
-          false,
-        );
-        const oldName =
-          oldDirectorySegments[oldDirectorySegments.length - 1] ?? note.title;
-        await removeDirectory(oldParent, oldName);
-      } else {
-        await removeFile(targetDirectory, `${note.title}${DOCUMENT_EXTENSION}`);
-      }
-    }
+    await writeFileText(
+      fileHandle,
+      serializeMarkdownDocument(title, frontmatter, draft.body),
+    );
 
     const read = await readMarkdownFile(fileHandle);
     return buildNote(
-      targetPath,
-      targetFilePath,
-      targetDirPath,
+      note.id,
+      note.filePath,
+      note.dirPath,
       read.text,
       read.lastModified,
       read.hash,
+      path,
     );
   }
 
@@ -484,20 +538,23 @@ class NoteRepository {
       note.state,
       note.tags,
       now,
+      note.title,
+      note.path,
     );
     await writeFileText(
       fileHandle,
-      serializeMarkdownDocument(note.path, frontmatter, body),
+      serializeMarkdownDocument(note.title, frontmatter, body),
     );
 
     const read = await readMarkdownFile(fileHandle);
     return buildNote(
-      note.path,
+      note.id,
       note.filePath,
       note.dirPath,
       read.text,
       read.lastModified,
       read.hash,
+      note.path,
     );
   }
 

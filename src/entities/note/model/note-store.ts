@@ -194,8 +194,7 @@ export const useNotesStore = defineStore('notes', () => {
     fromPath: string,
     anchor?: string,
   ): ResolvedDocumentLink | null {
-    const current = notesByPath.value.get(fromPath);
-    const fromDir = current?.dirPath ?? documentDirPath(fromPath);
+    const fromDir = documentDirPath(fromPath);
     const normalized = normalizeDocumentLinkPath(rawPath, fromDir);
     if (!normalized) {
       return null;

@@ -33,7 +33,7 @@
     </template>
     <template v-if="showPath">
       <p class="note-card__path">
-        {{ note.dirPath }}
+        {{ noteParentPath }}
       </p>
     </template>
   </article>
@@ -54,6 +54,7 @@ import ImportedMark from '@/shared/ui/ImportedMark.vue';
 import ArchivedMark from '@/entities/note/ui/ArchivedMark.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 import { formatDateTime } from '@/shared/lib/date';
+import { documentDirPath } from '@/entities/note/model/note-path';
 import { documentRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
@@ -68,8 +69,10 @@ const hasDates = computed(() =>
   Boolean(props.note.createdAt || props.note.modifiedAt),
 );
 const hasDue = computed(() => Boolean(props.note.dueAt));
-const showPath = computed(() =>
-  Boolean(props.note.dirPath && props.note.dirPath !== props.note.title),
+const noteParentPath = computed(() => documentDirPath(props.note.path));
+const showPath = computed(
+  () =>
+    Boolean(noteParentPath.value) && noteParentPath.value !== props.note.title,
 );
 const dueOverdue = computed(() => {
   if (!props.note.dueAt) {
