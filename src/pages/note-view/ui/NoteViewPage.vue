@@ -185,6 +185,7 @@ import { downloadBlob } from '@/shared/lib/download';
 import { useRoute } from 'vue-router';
 
 import { useNotesStore, describeError } from '@/entities/note/model/note-store';
+import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import { exportNoteArchive } from '@/features/export-note/model/export-note';
 import NoteDates from '@/entities/note/ui/NoteDates.vue';
 import NoteTags from '@/entities/note/ui/NoteTags.vue';
@@ -202,6 +203,7 @@ const props = defineProps<{
 }>();
 
 const notesStore = useNotesStore();
+const syncStore = useDriveSyncStore();
 const route = useRoute();
 const headingId = useId();
 const { t } = useI18n();
@@ -379,6 +381,7 @@ async function handleToggleTask(
 
   try {
     await notesStore.toggleTask(current, taskIndex, checked);
+    syncStore.requestTaskSync();
   } catch (error) {
     showStatus(describeError(error), true);
   }

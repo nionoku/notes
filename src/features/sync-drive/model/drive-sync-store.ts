@@ -57,6 +57,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
   const lastSyncAt = ref(loadLastSyncAt());
   const progress = ref<SyncProgress | null>(null);
   let pendingSync = false;
+  const pendingTaskSync = ref(false);
 
   const configured = computed(() =>
     Boolean(config.value.url && config.value.token),
@@ -116,6 +117,20 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
     detail.value = translate('sync.detail.disabled');
   }
 
+  function requestTaskSync(): void {
+    pendingTaskSync.value = true;
+  }
+
+  function flushPendingTaskSync(): void {
+    if (!pendingTaskSync.value) {
+      return;
+    }
+    pendingTaskSync.value = false;
+    if (configured.value) {
+      void sync();
+    }
+  }
+
   async function sync(): Promise<void> {
     if (syncing.value) {
       pendingSync = true;
@@ -132,6 +147,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
       return;
     }
 
+    pendingTaskSync.value = false;
     state.value = 'syncing';
     detail.value = translate('sync.detail.loading');
     progress.value = null;
@@ -173,6 +189,8 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
     lastSyncLabel,
     configure,
     clear,
+    requestTaskSync,
+    flushPendingTaskSync,
     sync,
   };
 });

@@ -99,16 +99,18 @@
  * @fileoverview Список записей базы знаний.
  */
 
-import { computed, ref, useId } from 'vue';
+import { computed, onMounted, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import NoteCard from '@/entities/note/ui/NoteCard.vue';
 import NotesSearch from '@/features/search-notes/ui/NotesSearch.vue';
 import { searchDocuments } from '@/features/search-notes/model/search-notes';
 import { useNotesStore } from '@/entities/note/model/note-store';
+import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import { createDocumentRoute, documentRoute } from '@/shared/lib/urls';
 
 const notesStore = useNotesStore();
+const syncStore = useDriveSyncStore();
 const headingId = useId();
 const { t } = useI18n();
 const query = ref('');
@@ -139,6 +141,10 @@ const anchorItems = computed(() =>
 );
 const hasNotes = computed(() => searchResult.value.notes.length > 0);
 const createUrl = createDocumentRoute();
+
+onMounted(() => {
+  syncStore.flushPendingTaskSync();
+});
 
 function updateQuery(value: string): void {
   query.value = value;
