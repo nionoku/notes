@@ -11,7 +11,10 @@ import {
   saveDriveConfig,
   saveLastSyncAt,
 } from '@/features/sync-drive/model/drive-config';
-import { syncDrive } from '@/features/sync-drive/model/drive-sync';
+import {
+  deleteRemoteNote,
+  syncDrive,
+} from '@/features/sync-drive/model/drive-sync';
 import type {
   DriveConfig,
   DriveSyncState,
@@ -19,6 +22,7 @@ import type {
   SyncSummary,
 } from '@/features/sync-drive/model/drive-types';
 import { formatDateTime } from '@/shared/lib/date';
+import type { Note } from '@/entities/note/model/note-types';
 import { translate } from '@/shared/i18n';
 
 function summaryDetail(summary: SyncSummary): string {
@@ -131,6 +135,19 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
     }
   }
 
+  async function deleteRemote(note: Note): Promise<void> {
+    if (note.state !== 'archived') {
+      throw new Error(translate('errors.deleteActiveOnly'));
+    }
+    if (!configured.value) {
+      return;
+    }
+    if (!navigator.onLine) {
+      throw new Error(translate('errors.deleteOffline'));
+    }
+    await deleteRemoteNote(config.value, note);
+  }
+
   async function sync(): Promise<void> {
     if (syncing.value) {
       pendingSync = true;
@@ -191,6 +208,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
     clear,
     requestTaskSync,
     flushPendingTaskSync,
+    deleteRemote,
     sync,
   };
 });

@@ -558,6 +558,18 @@ class NoteRepository {
     );
   }
 
+  async remove(note: Note): Promise<void> {
+    if (note.state !== 'archived') {
+      throw new DocumentValidationError(translate('errors.deleteActiveOnly'));
+    }
+    const root = await getStorageRoot();
+    const directory = await getDirectoryIfExists(root, [note.dirPath]);
+    if (!directory || note.dirPath !== note.id) {
+      throw new DocumentNotFoundError(note.path);
+    }
+    await removeDirectory(root, note.dirPath);
+  }
+
   /**
    * Сохраняет изображение в `<dirPath>/assets` и возвращает относительный путь
    * для markdown: `assets/<имя>`.

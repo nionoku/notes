@@ -43,6 +43,8 @@ function bridge(requestJson) {
           ok: true,
           result: uploadFile(params.path, params.base64, params.hash),
         };
+      case 'delete':
+        return {ok: true, result: deleteFile(params.path)};
       default:
         return {ok: false, error: 'Неизвестный метод синхронизации.'};
     }
@@ -73,7 +75,7 @@ function walkFolder(folder, prefix, files) {
   const fileIterator = folder.getFiles();
   while (fileIterator.hasNext()) {
     const file = fileIterator.next();
-    if (file.isTrashed()) {
+    if (file.isTrashed() || isDeletedName(file.getName())) {
       continue;
     }
     const size = file.getSize();
@@ -92,6 +94,9 @@ function walkFolder(folder, prefix, files) {
   const folderIterator = folder.getFolders();
   while (folderIterator.hasNext()) {
     const child = folderIterator.next();
+    if (isDeletedName(child.getName())) {
+      continue;
+    }
     walkFolder(child, prefix + child.getName() + '/', files);
   }
 }
@@ -146,6 +151,19 @@ function uploadFile(path, base64, requestedHash) {
     size: bytes.length,
     modified: file.getLastUpdated().getTime(),
   };
+}
+
+function isDeletedName(name) {
+  return String(name).charAt(0) === '~';
+}
+
+function deleteFile(path) {
+  const file = findFile(path);
+  if (file && !isDeletedName(file.getName())) {
+    // Tombstone: keep the data on Drive but hide it from the sync manifest.
+    file.setName('~' + file.getName());
+  }
+  return {path: path, deleted: Boolean(file)};
 }
 
 function getRootFolder() {

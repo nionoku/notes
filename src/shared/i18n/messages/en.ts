@@ -61,6 +61,12 @@ export default {
     calendar: 'Create calendar event',
     calendarDownloaded: 'Calendar event file downloaded',
     archiveLabel: 'Archived note',
+    actions: 'Note actions',
+    moreActions: 'More',
+    delete: 'Delete',
+    deleteTitle: 'Delete note?',
+    deleteText: 'The note will be removed from the app.',
+    deleteConfirm: 'Delete',
     archive: 'Archive',
     unarchive: 'Restore from archive',
     archived: 'Note archived',
@@ -234,6 +240,9 @@ export default {
     documentNotFound: 'Document “{path}” was not found.',
     documentExists: 'Document “{title}” already exists.',
     invalidSyncPath: 'Invalid sync path.',
+    deleteActiveOnly: 'Only archived notes can be deleted.',
+    deleteOffline:
+      'An internet connection is required to delete an archived note.',
     opfsUnsupported:
       'Your browser does not support the Origin Private File System. Open the app in a modern browser over HTTPS or on localhost.',
     hashUnsupported: 'Your browser does not support SHA-256 (crypto.subtle).',

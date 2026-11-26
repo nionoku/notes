@@ -106,6 +106,21 @@ export function planSync(
   };
 }
 
+export async function deleteRemoteNote(
+  config: DriveConfig,
+  note: Note,
+): Promise<void> {
+  const files = await noteRepository.collectNoteFiles(note);
+  const transport = new AppsScriptTransport(config.url, config.token);
+  try {
+    for (const file of files) {
+      await transport.delete(file.path);
+    }
+  } finally {
+    transport.close();
+  }
+}
+
 export async function syncDrive(
   config: DriveConfig,
   onProgress?: (progress: SyncProgress) => void,

@@ -44,6 +44,7 @@ export interface DriveTransport {
   manifest(): Promise<RemoteManifest>;
   upload(path: string, base64: string, hash: string): Promise<UploadResult>;
   download(path: string): Promise<DownloadResult>;
+  delete(path: string): Promise<void>;
   close(): void;
 }
 
@@ -126,6 +127,10 @@ export class AppsScriptTransport implements DriveTransport {
 
   async download(path: string): Promise<DownloadResult> {
     return this.request<DownloadResult>('download', { path });
+  }
+
+  async delete(path: string): Promise<void> {
+    await this.request<unknown>('delete', { path });
   }
 
   close(): void {

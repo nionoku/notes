@@ -61,6 +61,12 @@ export default {
     calendar: 'Создать событие в календаре',
     calendarDownloaded: 'Файл события календаря скачан',
     archiveLabel: 'Архивная заметка',
+    actions: 'Действия с заметкой',
+    moreActions: 'Ещё',
+    delete: 'Удалить',
+    deleteTitle: 'Удалить заметку?',
+    deleteText: 'Заметка будет удалена из приложения.',
+    deleteConfirm: 'Удалить',
     archive: 'Архивировать',
     unarchive: 'Вернуть из архива',
     archived: 'Заметка добавлена в архив',
@@ -236,6 +242,9 @@ export default {
     documentNotFound: 'Документ «{path}» не найден.',
     documentExists: 'Документ «{title}» уже существует.',
     invalidSyncPath: 'Недопустимый путь синхронизации.',
+    deleteActiveOnly: 'Удалить можно только архивную заметку.',
+    deleteOffline:
+      'Для удаления архивной заметки нужно подключение к интернету.',
     opfsUnsupported:
       'Браузер не поддерживает Origin Private File System. Откройте приложение в современном браузере по HTTPS или на localhost.',
     hashUnsupported: 'Браузер не поддерживает SHA-256 (crypto.subtle).',

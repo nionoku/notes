@@ -29,38 +29,8 @@
               </h1>
             </div>
             <div class="note__actions">
-              <button
-                type="button"
-                class="button-link note__action"
-                :disabled="archiving"
-                :aria-label="archiveActionLabel"
-                :title="archiveActionLabel"
-                @click="toggleArchive"
-              >
-                <AppIcon
-                  name="archive"
-                  :size="18"
-                />
-                <span class="note__action-label">{{ archiveActionLabel }}</span>
-              </button>
-              <button
-                type="button"
-                class="button-link note__action"
-                :disabled="exporting"
-                :aria-label="t('noteView.export')"
-                :title="t('noteView.exportTitle')"
-                @click="exportNote"
-              >
-                <AppIcon
-                  name="download"
-                  :size="18"
-                />
-                <span class="note__action-label">{{
-                  t('noteView.export')
-                }}</span>
-              </button>
               <RouterLink
-                class="button-link note__action"
+                class="button-link note__action note__edit"
                 :to="editUrl"
                 :aria-label="t('common.edit')"
                 :title="t('common.edit')"
@@ -71,6 +41,69 @@
                 />
                 <span class="note__action-label">{{ t('common.edit') }}</span>
               </RouterLink>
+              <button
+                type="button"
+                class="button-link note__actions-button"
+                :popovertarget="actionsMenuId"
+                aria-haspopup="menu"
+                :aria-label="t('noteView.moreActions')"
+                :title="t('noteView.moreActions')"
+              >
+                <AppIcon
+                  name="more"
+                  :size="18"
+                />
+              </button>
+              <div
+                :id="actionsMenuId"
+                ref="actionsMenuRef"
+                class="note__actions-menu"
+                popover="auto"
+                role="menu"
+                :aria-label="t('noteView.actions')"
+              >
+                <button
+                  type="button"
+                  class="note__menu-item"
+                  role="menuitem"
+                  :disabled="archiving"
+                  @click="archiveFromMenu"
+                >
+                  <AppIcon
+                    name="archive"
+                    :size="16"
+                  />
+                  {{ archiveActionLabel }}
+                </button>
+                <button
+                  type="button"
+                  class="note__menu-item"
+                  role="menuitem"
+                  :disabled="exporting"
+                  @click="exportFromMenu"
+                >
+                  <AppIcon
+                    name="download"
+                    :size="16"
+                  />
+                  {{ t('noteView.export') }}
+                </button>
+                <template v-if="isArchived">
+                  <button
+                    type="button"
+                    class="note__menu-item note__menu-item--danger"
+                    role="menuitem"
+                    :disabled="deleting"
+                    @click="deleteFromMenu"
+                  >
+                    <AppIcon
+                      name="trash"
+                      :size="16"
+                    />
+                    {{ t('noteView.delete') }}
+                  </button>
+                </template>
+              </div>
             </div>
           </div>
           <template v-if="hasDates">
@@ -116,6 +149,31 @@
           @toggle-task="handleToggleTask"
         />
       </article>
+      <AppDialog
+        v-model:open="deleteDialogOpen"
+        :title="t('noteView.deleteTitle')"
+      >
+        <p class="hint">
+          {{ t('noteView.deleteText') }}
+        </p>
+        <div class="form-actions">
+          <button
+            type="button"
+            :disabled="deleting"
+            @click="closeDeleteDialog"
+          >
+            {{ t('common.cancel') }}
+          </button>
+          <button
+            type="button"
+            class="button-link note__danger-button"
+            :disabled="deleting"
+            @click="deleteCurrentNote"
+          >
+            {{ t('noteView.deleteConfirm') }}
+          </button>
+        </div>
+      </AppDialog>
     </template>
 
     <template v-else-if="showMissing">
@@ -182,7 +240,7 @@ import { useI18n } from 'vue-i18n';
 import { formatDateTime } from '@/shared/lib/date';
 import { buildCalendarEvent } from '@/shared/lib/calendar';
 import { downloadBlob } from '@/shared/lib/download';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { useNotesStore, describeError } from '@/entities/note/model/note-store';
 import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
@@ -191,6 +249,7 @@ import NoteDates from '@/entities/note/ui/NoteDates.vue';
 import NoteTags from '@/entities/note/ui/NoteTags.vue';
 import NoteContentView from '@/widgets/note-content/ui/NoteContentView.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
+import AppDialog from '@/shared/ui/AppDialog.vue';
 import ImportedMark from '@/shared/ui/ImportedMark.vue';
 import {
   documentUrl,
@@ -205,13 +264,18 @@ const props = defineProps<{
 const notesStore = useNotesStore();
 const syncStore = useDriveSyncStore();
 const route = useRoute();
+const router = useRouter();
 const headingId = useId();
 const { t } = useI18n();
 const statusMessage = ref('');
 const statusFailed = ref(false);
 const statusAnnouncement = ref('');
 const statusRef = ref<HTMLElement | null>(null);
+const actionsMenuRef = ref<HTMLElement | null>(null);
+const actionsMenuId = `note-actions-${useId()}`;
 const exporting = ref(false);
+const deleting = ref(false);
+const deleteDialogOpen = ref(false);
 const archiving = ref(false);
 let statusTimer: number | undefined;
 let lastFocused: HTMLElement | null = null;
@@ -311,6 +375,57 @@ async function toggleArchive(): Promise<void> {
     showStatus(describeError(error), true);
   } finally {
     archiving.value = false;
+  }
+}
+
+function hideNoteActionsMenu(): void {
+  actionsMenuRef.value?.hidePopover();
+}
+
+function archiveFromMenu(): void {
+  hideNoteActionsMenu();
+  void toggleArchive();
+}
+
+function exportFromMenu(): void {
+  hideNoteActionsMenu();
+  void exportNote();
+}
+
+function deleteFromMenu(): void {
+  hideNoteActionsMenu();
+  openDeleteDialog();
+}
+
+function openDeleteDialog(): void {
+  if (!isArchived.value || deleting.value) {
+    return;
+  }
+  deleteDialogOpen.value = true;
+}
+
+function closeDeleteDialog(): void {
+  if (!deleting.value) {
+    deleteDialogOpen.value = false;
+  }
+}
+
+async function deleteCurrentNote(): Promise<void> {
+  const current = note.value;
+  if (!current || deleting.value) {
+    return;
+  }
+
+  deleting.value = true;
+  try {
+    await syncStore.deleteRemote(current);
+    await notesStore.remove(current);
+    deleteDialogOpen.value = false;
+    await router.push(listUrl);
+  } catch (error) {
+    showStatus(describeError(error), true);
+  } finally {
+    deleting.value = false;
   }
 }
 
@@ -431,11 +546,87 @@ onBeforeUnmount(() => {
 .note__actions {
   display: flex;
   flex: none;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .note__action {
   flex: none;
+}
+
+.note__edit {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
+
+.note__edit:hover {
+  color: var(--color-surface);
+  filter: brightness(0.95);
+}
+
+.note__actions-button {
+  inline-size: 2.5rem;
+  padding: 0;
+  justify-content: center;
+  anchor-name: --note-actions-anchor;
+}
+
+.note__actions-menu {
+  position: fixed;
+  inset: auto;
+  inset-block-start: 4.25rem;
+  inset-inline-end: 1rem;
+  inline-size: 14rem;
+  margin: 0;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+}
+
+.note__actions-menu:popover-open {
+  display: grid;
+  gap: 0.1rem;
+}
+
+@supports (anchor-name: --note-actions-anchor) {
+  .note__actions-menu {
+    position-anchor: --note-actions-anchor;
+    inset-block-start: calc(anchor(--note-actions-anchor bottom) + 0.35rem);
+    inset-inline: anchor(--note-actions-anchor right) auto;
+    transform: translateX(-100%);
+  }
+}
+
+.note__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  inline-size: 100%;
+  padding: 0.55rem 0.6rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.note__menu-item:hover {
+  background: var(--color-accent-soft);
+}
+
+.note__menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.note__menu-item--danger {
+  color: var(--color-danger);
 }
 
 .note__date {
@@ -460,6 +651,10 @@ onBeforeUnmount(() => {
 
 .note__due-info--overdue {
   color: var(--color-warning);
+}
+
+.note__danger-button {
+  color: var(--color-danger);
 }
 
 .note__calendar {
