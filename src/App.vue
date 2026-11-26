@@ -1,5 +1,6 @@
 <template>
   <div class="app-shell">
+    <AppUpdatePrompt />
     <AppHeader />
     <main class="app-main">
       <RouterView />
@@ -16,6 +17,7 @@ import {onMounted} from 'vue';
 
 import {useNotesStore} from '@/entities/note/model/note-store';
 import AppHeader from '@/widgets/app-header/ui/AppHeader.vue';
+import AppUpdatePrompt from '@/features/pwa-update/ui/AppUpdatePrompt.vue';
 
 const notesStore = useNotesStore();
 

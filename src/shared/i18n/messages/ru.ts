@@ -8,6 +8,11 @@ export default {
     title: 'Notes',
     description: 'Notes — локальная база знаний в формате Markdown.',
   },
+  pwa: {
+    updateTitle: 'Доступно обновление',
+    updateText: 'Перезагрузите приложение, чтобы применить новую версию.',
+    updateAction: 'Перезагрузить',
+  },
   status: {
     notifications: 'Уведомления',
   },
