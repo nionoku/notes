@@ -122,6 +122,7 @@
             :id="newTagFieldId"
             ref="newTagInput"
             v-model="newTag"
+            class="note-form__tag-input"
             name="newTag"
             type="text"
             autocomplete="off"
@@ -758,7 +759,7 @@ function retry(): void {
 }
 
 .note-form__field input,
-.note-form__custom-tag + input {
+.note-form__tag-input {
   inline-size: 100%;
   min-block-size: 2.5rem;
   padding: 0.45rem 0.6rem;
@@ -768,7 +769,7 @@ function retry(): void {
 }
 
 .note-form__field input[aria-invalid='true'],
-.note-form__custom-tag + input[aria-invalid='true'] {
+.note-form__tag-input[aria-invalid='true'] {
   border-color: var(--color-danger);
 }
 
@@ -840,7 +841,6 @@ function retry(): void {
 }
 
 .note-form__custom-tag {
-  margin-block-start: 0.4rem;
   font-size: 0.875rem;
 }
 

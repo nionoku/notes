@@ -18,7 +18,7 @@
           class="editor-toolbar__button"
           :aria-pressed="button.ariaPressed"
           :aria-label="t(button.labelKey)"
-          :title="t(button.labelKey)"
+          :title="button.title"
           @mousedown.prevent
           @click="emit('action', button.action)"
         >
@@ -50,7 +50,7 @@
           :disabled="button.disabled"
           :aria-pressed="button.ariaPressed"
           :aria-label="t(button.labelKey)"
-          :title="t(button.labelKey)"
+          :title="button.title"
           @mousedown.prevent
           @click="emit('action', button.action)"
         >
@@ -81,7 +81,7 @@
           class="editor-toolbar__button"
           :aria-pressed="button.ariaPressed"
           :aria-label="t(button.labelKey)"
-          :title="t(button.labelKey)"
+          :title="button.title"
           @mousedown.prevent
           @click="emit('action', button.action)"
         >
@@ -112,7 +112,7 @@
           class="editor-toolbar__button"
           :disabled="button.disabled"
           :aria-label="t(button.labelKey)"
-          :title="t(button.labelKey)"
+          :title="button.title"
           @mousedown.prevent
           @click="emit('action', button.action)"
         >
@@ -142,11 +142,13 @@ interface ToolbarButton {
   readonly icon: string;
   readonly labelKey: string;
   readonly pressed?: boolean;
+  readonly shortcut?: string;
 }
 
 interface ToolbarButtonState extends ToolbarButton {
   readonly disabled: boolean;
   readonly ariaPressed: boolean | undefined;
+  readonly title: string;
 }
 
 const props = defineProps<{
@@ -160,18 +162,26 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const inlineBaseButtons: readonly ToolbarButton[] = [
-  { action: 'bold', icon: 'bold', labelKey: 'toolbar.bold', pressed: true },
+  {
+    action: 'bold',
+    icon: 'bold',
+    labelKey: 'toolbar.bold',
+    pressed: true,
+    shortcut: 'Ctrl/⌘+B',
+  },
   {
     action: 'italic',
     icon: 'italic',
     labelKey: 'toolbar.italic',
     pressed: true,
+    shortcut: 'Ctrl/⌘+I',
   },
   {
     action: 'underline',
     icon: 'underline',
     labelKey: 'toolbar.underline',
     pressed: true,
+    shortcut: 'Ctrl/⌘+U',
   },
   {
     action: 'strikethrough',
@@ -188,12 +198,14 @@ const headingBaseButtons: readonly ToolbarButton[] = [
     icon: 'heading-2',
     labelKey: 'toolbar.heading2',
     pressed: true,
+    shortcut: 'Ctrl/⌘+Alt+2',
   },
   {
     action: 'heading-3',
     icon: 'heading-3',
     labelKey: 'toolbar.heading3',
     pressed: true,
+    shortcut: 'Ctrl/⌘+Alt+3',
   },
 ];
 
@@ -232,7 +244,12 @@ const blockBaseButtons: readonly ToolbarButton[] = [
 
 const insertBaseButtons: readonly ToolbarButton[] = [
   { action: 'image', icon: 'image', labelKey: 'toolbar.image' },
-  { action: 'link', icon: 'link', labelKey: 'toolbar.link' },
+  {
+    action: 'link',
+    icon: 'link',
+    labelKey: 'toolbar.link',
+    shortcut: 'Ctrl/⌘+K',
+  },
   {
     action: 'document-link',
     icon: 'document-link',
@@ -245,6 +262,9 @@ function withState(buttons: readonly ToolbarButton[]): ToolbarButtonState[] {
     ...button,
     disabled: button.action === 'image' && !props.allowImages,
     ariaPressed: button.pressed ? props.active.has(button.action) : undefined,
+    title: button.shortcut
+      ? `${t(button.labelKey)} (${button.shortcut})`
+      : t(button.labelKey),
   }));
 }
 
