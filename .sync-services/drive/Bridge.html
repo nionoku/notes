@@ -19,24 +19,39 @@
       (function () {
         var APP_SOURCE = 'notes-app-bridge';
         var BRIDGE_SOURCE = 'notes-drive-bridge';
+        var CHANNEL = String(Date.now()) + '-' + Math.random().toString(36).slice(2);
         var status = document.getElementById('status');
+        var readyTimer = null;
 
         function send(message) {
-          window.parent.postMessage(message, '*');
+          // Apps Script wraps user HTML in a second sandboxed iframe. Its
+          // direct parent is Google's wrapper, so messages must go to top.
+          window.top.postMessage(message, '*');
         }
 
         function ready() {
           status.textContent = 'Connected';
-          send({source: BRIDGE_SOURCE, type: 'ready'});
+          send({
+            source: BRIDGE_SOURCE,
+            type: 'ready',
+            channel: CHANNEL
+          });
         }
 
+        // The app may start listening after the document loads. Repeat ready
+        // until the app sends the first request.
+        ready();
+        readyTimer = setInterval(ready, 1000);
+
         window.addEventListener('message', function (event) {
-          if (event.source !== window.parent) return;
+          if (event.source !== window.top) return;
           var data = event.data;
           if (!data || data.source !== APP_SOURCE) return;
-          if (data.type === 'hello') {
-            ready();
-            return;
+          if (data.channel !== CHANNEL) return;
+
+          if (readyTimer) {
+            clearInterval(readyTimer);
+            readyTimer = null;
           }
           if (!data.id) return;
 
@@ -47,6 +62,7 @@
               if (payload.ok) {
                 send({
                   source: BRIDGE_SOURCE,
+                  channel: CHANNEL,
                   id: data.id,
                   ok: true,
                   result: payload.result
@@ -54,6 +70,7 @@
               } else {
                 send({
                   source: BRIDGE_SOURCE,
+                  channel: CHANNEL,
                   id: data.id,
                   ok: false,
                   error: payload.error || 'Неизвестная ошибка Apps Script'
@@ -64,6 +81,7 @@
             .withFailureHandler(function (error) {
               send({
                 source: BRIDGE_SOURCE,
+                channel: CHANNEL,
                 id: data.id,
                 ok: false,
                 error: error && error.message ? error.message : String(error)
@@ -72,8 +90,6 @@
             })
             .bridge(JSON.stringify(data.request || {}));
         });
-
-        ready();
       })();
     </script>
   </body>

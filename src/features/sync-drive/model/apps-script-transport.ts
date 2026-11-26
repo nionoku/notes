@@ -18,6 +18,7 @@ const READY_TIMEOUT_MS = 25_000;
 const REQUEST_TIMEOUT_MS = 120_000;
 
 interface BridgeRequest {
+  readonly channel: string;
   readonly method: string;
   readonly token: string;
   readonly params: Record<string, unknown>;
@@ -26,6 +27,7 @@ interface BridgeRequest {
 interface BridgeMessage {
   readonly source?: string;
   readonly type?: string;
+  readonly channel?: string;
   readonly id?: string;
   readonly ok?: boolean;
   readonly result?: unknown;
@@ -47,27 +49,40 @@ export interface DriveTransport {
 
 export class AppsScriptTransport implements DriveTransport {
   private iframe: HTMLIFrameElement | null = null;
+  private bridgeWindow: Window | null = null;
+  private channel = '';
   private readyPromise: Promise<void> | null = null;
   private resolveReady: (() => void) | null = null;
   private rejectReady: ((error: Error) => void) | null = null;
   private readyTimer: number | undefined;
-  private readyPoll: number | undefined;
   private readonly pending = new Map<string, PendingRequest>();
   private readonly handleMessage = (event: MessageEvent): void => {
-    if (event.source !== this.iframe?.contentWindow) {
-      return;
-    }
     const message = event.data as BridgeMessage;
     if (!message || message.source !== BRIDGE_SOURCE) {
       return;
     }
 
     if (message.type === 'ready') {
+      if (!message.channel) {
+        return;
+      }
+      if (!this.channel) {
+        this.channel = message.channel;
+      }
+      if (message.channel !== this.channel || !event.source) {
+        return;
+      }
+      this.bridgeWindow = event.source as Window;
       this.markReady();
       return;
     }
 
-    if (!message.id) {
+    if (
+      !message.channel ||
+      message.channel !== this.channel ||
+      event.source !== this.bridgeWindow ||
+      !message.id
+    ) {
       return;
     }
     const pending = this.pending.get(message.id);
@@ -129,9 +144,14 @@ export class AppsScriptTransport implements DriveTransport {
         reject,
         timer,
       });
-      const request: BridgeRequest = {method, token: this.token, params};
-      this.iframe?.contentWindow?.postMessage(
-        {source: APP_SOURCE, id, request},
+      const request: BridgeRequest = {
+        channel: this.channel,
+        method,
+        token: this.token,
+        params,
+      };
+      this.bridgeWindow?.postMessage(
+        {source: APP_SOURCE, channel: this.channel, id, request},
         '*',
       );
     });
@@ -172,12 +192,6 @@ export class AppsScriptTransport implements DriveTransport {
         this.failReady(new Error(translate('syncTransport.connect')));
       }, READY_TIMEOUT_MS);
       document.body.append(iframe);
-      this.readyPoll = window.setInterval(() => {
-        iframe.contentWindow?.postMessage(
-          {source: APP_SOURCE, type: 'hello'},
-          '*',
-        );
-      }, 1_000);
     });
 
     return this.readyPromise;
@@ -188,10 +202,6 @@ export class AppsScriptTransport implements DriveTransport {
       window.clearTimeout(this.readyTimer);
       this.readyTimer = undefined;
     }
-    if (this.readyPoll !== undefined) {
-      window.clearInterval(this.readyPoll);
-      this.readyPoll = undefined;
-    }
     this.resolveReady?.();
     this.resolveReady = null;
     this.rejectReady = null;
@@ -201,10 +211,6 @@ export class AppsScriptTransport implements DriveTransport {
     if (this.readyTimer !== undefined) {
       window.clearTimeout(this.readyTimer);
       this.readyTimer = undefined;
-    }
-    if (this.readyPoll !== undefined) {
-      window.clearInterval(this.readyPoll);
-      this.readyPoll = undefined;
     }
     this.rejectReady?.(error);
     this.resolveReady = null;
@@ -218,10 +224,6 @@ export class AppsScriptTransport implements DriveTransport {
       window.clearTimeout(this.readyTimer);
       this.readyTimer = undefined;
     }
-    if (this.readyPoll !== undefined) {
-      window.clearInterval(this.readyPoll);
-      this.readyPoll = undefined;
-    }
     for (const [id, pending] of this.pending) {
       window.clearTimeout(pending.timer);
       pending.reject(new Error(translate('syncTransport.closed')));
@@ -229,6 +231,8 @@ export class AppsScriptTransport implements DriveTransport {
     }
     this.iframe?.remove();
     this.iframe = null;
+    this.bridgeWindow = null;
+    this.channel = '';
     this.readyPromise = null;
   }
 }
