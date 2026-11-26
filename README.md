@@ -1,6 +1,6 @@
 # 📝 Notes
 
-**Version:** `1.3.0`
+**Version:** `1.4.0`
 
 Notes is a local-first Markdown knowledge base that runs entirely in the
 browser. Documents live in the Origin Private File System (OPFS), the app works
@@ -15,28 +15,23 @@ sync.
 - ☁️ Sync notes with Google Drive through Apps Script.
 - 📲 Work offline as an installable PWA.
 
-## 🚀 Run with GitHub Pages
+## 🚀 App and Google Drive Sync
 
-The app is designed for a project page at:
+The app is deployed at:
 
-```text
-https://<username>.github.io/notes/
-```
+**<https://nionoku.github.io/notes/>**
 
-1. Push the repository to GitHub. For the default path, name the repository
-   `notes`.
-2. Open **Settings → Pages → Build and deployment** and set **Source** to
-   **GitHub Actions**.
-3. Push to `main`, or run **Actions → Deploy GitHub Pages → Run workflow**.
-4. Wait for the workflow in
-   [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
-   to finish. The site will be available at the URL above.
+### Google Drive sync
 
-The workflow builds with `BASE_PATH=/notes/`, creates `dist/404.html` for SPA
-deep links, and publishes `dist` through GitHub Pages.
-
-If the repository has a different name, update `BASE_PATH` in the workflow to
-`/<repository-name>/`.
+1. Create a Google Apps Script Web App using the files in
+   [`.sync-services/drive/`](.sync-services/drive/). Detailed deployment steps
+   are in [`.sync-services/drive/README.md`](.sync-services/drive/README.md).
+2. Deploy it with **Execute as: Me** and **Who has access: Anyone**, then copy
+   the Web App URL ending in `/exec`.
+3. In the app open the **⋯** menu → **Enter access token**, and paste the Web App
+   URL and the `SYNC_TOKEN` from the Apps Script project.
+4. Run sync from the same menu. Notes are stored in the `Notes Sync` folder on
+   Google Drive.
 
 ## 💻 Run Locally
 
