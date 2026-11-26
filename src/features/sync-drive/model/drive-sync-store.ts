@@ -56,6 +56,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
   );
   const lastSyncAt = ref(loadLastSyncAt());
   const progress = ref<SyncProgress | null>(null);
+  let pendingSync = false;
 
   const configured = computed(() =>
     Boolean(config.value.url && config.value.token),
@@ -117,6 +118,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
 
   async function sync(): Promise<void> {
     if (syncing.value) {
+      pendingSync = true;
       return;
     }
     if (!configured.value) {
@@ -151,6 +153,10 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
           : translate('sync.detail.failed');
     } finally {
       progress.value = null;
+      if (pendingSync) {
+        pendingSync = false;
+        void sync();
+      }
     }
   }
 

@@ -7,7 +7,10 @@
       :aria-label="moreLabel"
       :title="t('sync.menu.more')"
     >
-      <AppIcon name="more" :size="18" />
+      <AppIcon
+        name="more"
+        :size="18"
+      />
       <span
         class="sync-menu__dot"
         :data-state="syncStore.state"
@@ -38,12 +41,6 @@
         </div>
       </div>
 
-      <template v-if="hasLastSync">
-        <p class="hint">
-          {{ t('sync.menu.lastSync', {date: syncStore.lastSyncLabel}) }}
-        </p>
-      </template>
-
       <button
         type="button"
         class="sync-menu__item"
@@ -52,12 +49,19 @@
       >
         {{ t('sync.menu.sync') }}
       </button>
-      <button type="button" class="sync-menu__item" @click="openSettings">
+      <button
+        type="button"
+        class="sync-menu__item"
+        @click="openSettings"
+      >
         {{ settingsLabel }}
       </button>
 
       <div class="sync-menu__separator"></div>
-      <div class="sync-menu__slot" @click="hideMenu">
+      <div
+        class="sync-menu__slot"
+        @click="hideMenu"
+      >
         <slot />
       </div>
     </div>
@@ -71,26 +75,25 @@
  * @fileoverview Меню синхронизации в шапке приложения.
  */
 
-import {computed, ref, useId} from 'vue';
-import {useI18n} from 'vue-i18n';
+import { computed, ref, useId } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {useDriveSyncStore} from '@/features/sync-drive/model/drive-sync-store';
+import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import SyncSettingsDialog from '@/features/sync-drive/ui/SyncSettingsDialog.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
 const syncStore = useDriveSyncStore();
-const {t} = useI18n();
+const { t } = useI18n();
 const menuId = `app-menu-${useId()}`;
 const menuRef = ref<HTMLElement | null>(null);
 const settingsOpen = ref(false);
 const canSync = computed(() => syncStore.configured && !syncStore.syncing);
 const syncDisabled = computed(() => !canSync.value);
-const hasLastSync = computed(() => Boolean(syncStore.lastSyncLabel));
 const settingsLabel = computed(() =>
   syncStore.configured ? t('sync.menu.settings') : t('sync.menu.connect'),
 );
 const moreLabel = computed(() =>
-  t('sync.menu.moreWithStatus', {status: syncStore.statusLabel}),
+  t('sync.menu.moreWithStatus', { status: syncStore.statusLabel }),
 );
 
 function hideMenu(): void {
@@ -254,6 +257,7 @@ function openSettings(): void {
 }
 
 @keyframes sync-pulse {
+
   0%,
   100% {
     opacity: 1;

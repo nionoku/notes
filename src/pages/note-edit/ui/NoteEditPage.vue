@@ -153,6 +153,7 @@ import {useRoute, useRouter} from 'vue-router';
 
 import {noteRepository} from '@/entities/note/api/note-repository';
 import {useNotesStore, describeError} from '@/entities/note/model/note-store';
+import {useDriveSyncStore} from '@/features/sync-drive/model/drive-sync-store';
 import {
   sanitizeAssetFileName,
   validateDocumentTitle,
@@ -175,6 +176,7 @@ const props = defineProps<{
 }>();
 
 const notesStore = useNotesStore();
+const syncStore = useDriveSyncStore();
 const router = useRouter();
 const route = useRoute();
 const fieldId = useId();
@@ -459,6 +461,7 @@ async function handleSubmit(): Promise<void> {
     if (isCreate.value) {
       const created = await notesStore.create(draft, pendingAssets.value);
       pendingAssets.value = [];
+      syncAfterSave();
       await router.push(documentRoute(created.path));
       return;
     }
@@ -468,11 +471,18 @@ async function handleSubmit(): Promise<void> {
       throw new Error(t('noteEdit.missing'));
     }
     const updated = await notesStore.save(current, draft);
+    syncAfterSave();
     await router.push(documentRoute(updated.path));
   } catch (saveError) {
     error.value = describeError(saveError);
   } finally {
     saving.value = false;
+  }
+}
+
+function syncAfterSave(): void {
+  if (syncStore.configured) {
+    void syncStore.sync();
   }
 }
 

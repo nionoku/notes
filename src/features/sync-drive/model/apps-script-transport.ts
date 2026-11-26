@@ -49,7 +49,7 @@ export interface DriveTransport {
 
 export class AppsScriptTransport implements DriveTransport {
   private iframe: HTMLIFrameElement | null = null;
-  private bridgeWindow: Window | null = null;
+  private bridgePort: MessagePort | null = null;
   private channel = '';
   private readyPromise: Promise<void> | null = null;
   private resolveReady: (() => void) | null = null;
@@ -62,25 +62,29 @@ export class AppsScriptTransport implements DriveTransport {
       return;
     }
 
-    if (message.type === 'ready') {
-      if (!message.channel) {
-        return;
-      }
-      if (!this.channel) {
-        this.channel = message.channel;
-      }
-      if (message.channel !== this.channel || !event.source) {
-        return;
-      }
-      this.bridgeWindow = event.source as Window;
-      this.markReady();
+    if (message.type !== 'ready' || !message.channel) {
       return;
     }
-
+    const port = event.ports[0];
+    if (!port) {
+      return;
+    }
+    if (this.channel && this.channel !== message.channel) {
+      port.close();
+      return;
+    }
+    this.channel = message.channel;
+    this.bridgePort = port;
+    port.onmessage = this.handlePortMessage;
+    port.start();
+    this.markReady();
+  };
+  private readonly handlePortMessage = (event: MessageEvent): void => {
+    const message = event.data as BridgeMessage;
     if (
-      !message.channel ||
+      !message ||
+      message.source !== BRIDGE_SOURCE ||
       message.channel !== this.channel ||
-      event.source !== this.bridgeWindow ||
       !message.id
     ) {
       return;
@@ -150,10 +154,12 @@ export class AppsScriptTransport implements DriveTransport {
         token: this.token,
         params,
       };
-      this.bridgeWindow?.postMessage(
-        {source: APP_SOURCE, channel: this.channel, id, request},
-        '*',
-      );
+      this.bridgePort?.postMessage({
+        source: APP_SOURCE,
+        channel: this.channel,
+        id,
+        request,
+      });
     });
   }
 
@@ -229,9 +235,10 @@ export class AppsScriptTransport implements DriveTransport {
       pending.reject(new Error(translate('syncTransport.closed')));
       this.pending.delete(id);
     }
+    this.bridgePort?.close();
+    this.bridgePort = null;
     this.iframe?.remove();
     this.iframe = null;
-    this.bridgeWindow = null;
     this.channel = '';
     this.readyPromise = null;
   }
