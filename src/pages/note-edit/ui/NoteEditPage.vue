@@ -188,6 +188,29 @@
         </div>
       </form>
     </template>
+    <AppDialog
+      v-model:open="leaveDialogOpen"
+      :title="t('noteEdit.leaveTitle')"
+    >
+      <p class="hint">
+        {{ t('noteEdit.leaveText') }}
+      </p>
+      <div class="form-actions">
+        <button
+          type="button"
+          @click="stayOnPage"
+        >
+          {{ t('noteEdit.leaveStay') }}
+        </button>
+        <button
+          type="button"
+          class="button-link"
+          @click="leavePage"
+        >
+          {{ t('noteEdit.leaveLeave') }}
+        </button>
+      </div>
+    </AppDialog>
   </section>
 </template>
 
@@ -196,9 +219,17 @@
  * @fileoverview Создание и редактирование документа.
  */
 
-import { computed, nextTick, ref, useId, watch } from 'vue';
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useId,
+  watch,
+} from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 
 import { noteRepository } from '@/entities/note/api/note-repository';
 import { useNotesStore, describeError } from '@/entities/note/model/note-store';
@@ -217,6 +248,7 @@ import { replaceLegacyDocumentLinks } from '@/shared/lib/document-links';
 import { tagHue } from '@/shared/lib/tag-color';
 import MarkdownEditor from '@/widgets/markdown-editor/ui/MarkdownEditor.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
+import AppDialog from '@/shared/ui/AppDialog.vue';
 import { documentRoute, notesListRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
@@ -238,6 +270,10 @@ const newTag = ref('');
 const localTags = ref<string[]>([]);
 const pendingAssets = ref<PendingAsset[]>([]);
 const initialized = ref(false);
+const initialSnapshot = ref('');
+const allowNavigation = ref(false);
+const leaveDialogOpen = ref(false);
+let leaveResolver: ((value: boolean) => void) | null = null;
 const saving = ref(false);
 const error = ref<string | null>(null);
 const titleInput = ref<HTMLInputElement | null>(null);
@@ -255,6 +291,12 @@ const note = computed(() =>
 );
 const pageTitle = computed(() =>
   isCreate.value ? t('noteEdit.newTitle') : t('noteEdit.editTitle'),
+);
+const isDirty = computed(
+  () =>
+    initialized.value &&
+    !allowNavigation.value &&
+    currentSnapshot() !== initialSnapshot.value,
 );
 const showError = computed(
   () => !isCreate.value && notesStore.status === 'error',
@@ -311,6 +353,7 @@ function initialize(): void {
     pendingAssets.value = [];
     dueEnabled.value = false;
     dueValue.value = '';
+    initialSnapshot.value = currentSnapshot();
     initialized.value = true;
     return;
   }
@@ -330,6 +373,7 @@ function initialize(): void {
   pendingAssets.value = [];
   dueEnabled.value = Boolean(current.dueAt);
   dueValue.value = current.dueAt ? toDateTimeLocal(current.dueAt) : '';
+  initialSnapshot.value = currentSnapshot();
   initialized.value = true;
   void nextTick(() => titleInput.value?.focus());
 }
@@ -512,6 +556,7 @@ async function handleSubmit(): Promise<void> {
       const created = await notesStore.create(draft, pendingAssets.value);
       pendingAssets.value = [];
       syncAfterSave();
+      allowNavigation.value = true;
       await router.push(documentRoute(created.path));
       return;
     }
@@ -522,6 +567,7 @@ async function handleSubmit(): Promise<void> {
     }
     const updated = await notesStore.save(current, draft);
     syncAfterSave();
+    allowNavigation.value = true;
     await router.push(documentRoute(updated.path));
   } catch (saveError) {
     error.value = describeError(saveError);
@@ -529,6 +575,79 @@ async function handleSubmit(): Promise<void> {
     saving.value = false;
   }
 }
+
+function currentSnapshot(): string {
+  return JSON.stringify({
+    title: title.value,
+    body: body.value,
+    tags: [...selectedTags.value].sort((first, second) =>
+      first.localeCompare(second, 'ru'),
+    ),
+    newTag: newTag.value,
+    dueEnabled: dueEnabled.value,
+    dueValue: dueValue.value,
+    pendingAssets: pendingAssets.value.length,
+  });
+}
+
+function requestLeaveConfirmation(): Promise<boolean> {
+  if (!isDirty.value || allowNavigation.value) {
+    return Promise.resolve(true);
+  }
+  if (leaveResolver) {
+    return Promise.resolve(false);
+  }
+  leaveDialogOpen.value = true;
+  return new Promise(resolve => {
+    leaveResolver = resolve;
+  });
+}
+
+function resolveLeave(leave: boolean): void {
+  const resolve = leaveResolver;
+  leaveResolver = null;
+  leaveDialogOpen.value = false;
+  if (leave) {
+    allowNavigation.value = true;
+  }
+  resolve?.(leave);
+}
+
+function stayOnPage(): void {
+  resolveLeave(false);
+}
+
+function leavePage(): void {
+  resolveLeave(true);
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent): void {
+  if (!isDirty.value || allowNavigation.value) {
+    return;
+  }
+  event.preventDefault();
+  event.returnValue = '';
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+});
+
+onBeforeRouteLeave(async () => {
+  return await requestLeaveConfirmation();
+});
+
+watch(leaveDialogOpen, open => {
+  if (!open && leaveResolver) {
+    const resolve = leaveResolver;
+    leaveResolver = null;
+    resolve(false);
+  }
+});
 
 function syncAfterSave(): void {
   if (syncStore.configured) {

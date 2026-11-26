@@ -80,6 +80,10 @@ export default {
     tagTooLong: 'A tag cannot exceed 50 characters.',
     notLoaded: 'Document not loaded.',
     missing: 'Document not found.',
+    leaveTitle: 'Leave this note?',
+    leaveText: 'You have unsaved changes. They will be lost if you leave.',
+    leaveStay: 'Stay',
+    leaveLeave: 'Leave',
   },
   dates: {
     created: 'Created: ',
