@@ -500,10 +500,6 @@ function addMarkerToLine(
   format: BlockFormat,
   index: number,
 ): string {
-  if (line.trim() === '') {
-    return line;
-  }
-
   switch (format) {
     case 'quote': {
       const match = /^(\s*)/.exec(line);
@@ -619,10 +615,17 @@ export function toggleBlockFormat(
     nonEmpty.length > 0 &&
     nonEmpty.every(line => lineMatchesFormat(line, format));
 
+  const isSingleEmptyLine =
+    safeSelection.start === safeSelection.end &&
+    lines.length === 1 &&
+    (lines[0] ?? '').trim() === '';
+
   let listIndex = 0;
   const transformed = lines.map(line => {
     if (line.trim() === '') {
-      return line;
+      return isSingleEmptyLine && !active
+        ? addMarkerToLine(line, format, listIndex)
+        : line;
     }
     if (active) {
       return removeMarkerFromLine(line, format);
