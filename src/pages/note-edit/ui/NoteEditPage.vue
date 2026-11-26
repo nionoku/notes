@@ -751,14 +751,14 @@ function retry(): void {
   gap: 0.25rem;
 }
 
-.note-form__caption>label,
+.note-form__caption > label,
 .note-form__fieldset legend {
   padding: 0;
   font-weight: 600;
 }
 
 .note-form__field input,
-.note-form__custom-tag+input {
+.note-form__custom-tag + input {
   inline-size: 100%;
   min-block-size: 2.5rem;
   padding: 0.45rem 0.6rem;
@@ -768,7 +768,7 @@ function retry(): void {
 }
 
 .note-form__field input[aria-invalid='true'],
-.note-form__custom-tag+input[aria-invalid='true'] {
+.note-form__custom-tag + input[aria-invalid='true'] {
   border-color: var(--color-danger);
 }
 
@@ -805,8 +805,13 @@ function retry(): void {
 
 .tag-option {
   --tag-color: hsl(var(--tag-hue) var(--tag-saturation) var(--tag-lightness));
-  --tag-background: hsl(var(--tag-hue) var(--tag-bg-saturation) var(--tag-bg-lightness));
-  --tag-background-strong: hsl(var(--tag-hue) var(--tag-bg-strong-saturation) var(--tag-bg-strong-lightness));
+  --tag-background: hsl(
+    var(--tag-hue) var(--tag-bg-saturation) var(--tag-bg-lightness)
+  );
+  --tag-background-strong: hsl(
+    var(--tag-hue) var(--tag-bg-strong-saturation)
+      var(--tag-bg-strong-lightness)
+  );
 
   display: inline-flex;
   align-items: center;

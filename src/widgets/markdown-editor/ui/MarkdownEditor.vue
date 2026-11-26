@@ -153,6 +153,8 @@ const activeFormats = computed(() => {
     }
   }
   const blockFormats: readonly BlockFormat[] = [
+    'heading-2',
+    'heading-3',
     'quote',
     'unordered-list',
     'ordered-list',
@@ -450,6 +452,19 @@ function handleKeydown(event: KeyboardEvent): void {
     if (key === 'k') {
       event.preventDefault();
       openLinkDialog();
+      return;
+    }
+  }
+
+  if (modifier && event.altKey) {
+    if (event.code === 'Digit2' || event.code === 'Numpad2') {
+      event.preventDefault();
+      applyBlock('heading-2');
+      return;
+    }
+    if (event.code === 'Digit3' || event.code === 'Numpad3') {
+      event.preventDefault();
+      applyBlock('heading-3');
       return;
     }
   }

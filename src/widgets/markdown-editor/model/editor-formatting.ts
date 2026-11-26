@@ -9,7 +9,13 @@ export type InlineFormat =
   'bold' | 'italic' | 'underline' | 'strikethrough' | 'code';
 
 export type BlockFormat =
-  'quote' | 'unordered-list' | 'ordered-list' | 'checkbox-list' | 'code-block';
+  | 'heading-2'
+  | 'heading-3'
+  | 'quote'
+  | 'unordered-list'
+  | 'ordered-list'
+  | 'checkbox-list'
+  | 'code-block';
 
 export interface EditorSelection {
   readonly start: number;
@@ -39,6 +45,8 @@ const LIST_PATTERN = /^(\s*)(?:[-*+]|\d+[.)])\s+/;
 const UNORDERED_PATTERN = /^(\s*)[-*+]\s+(?!\[[ xX]\])/;
 const ORDERED_PATTERN = /^(\s*)\d+[.)]\s+/;
 const QUOTE_PATTERN = /^(\s*)>\s?/;
+const HEADING_2_PATTERN = /^(\s*)##(?!#)\s+/;
+const HEADING_3_PATTERN = /^(\s*)###(?!#)\s+/;
 const TASK_MARKER_PATTERN = /^(\s*)[-*+]\s+\[[ xX]\]\s*/;
 
 function clampSelection(
@@ -468,6 +476,10 @@ function isBlockActive(
 
 function lineMatchesFormat(line: string, format: BlockFormat): boolean {
   switch (format) {
+    case 'heading-2':
+      return HEADING_2_PATTERN.test(line);
+    case 'heading-3':
+      return HEADING_3_PATTERN.test(line);
     case 'quote':
       return QUOTE_PATTERN.test(line);
     case 'unordered-list':
@@ -501,6 +513,14 @@ function addMarkerToLine(
   index: number,
 ): string {
   switch (format) {
+    case 'heading-2':
+    case 'heading-3': {
+      const marker = format === 'heading-2' ? '##' : '###';
+      const match = /^(\s*)/.exec(line);
+      const indent = match?.[1] ?? '';
+      const content = line.slice(indent.length).replace(/^#{1,6}\s+/, '');
+      return `${indent}${marker} ${content}`;
+    }
     case 'quote': {
       const match = /^(\s*)/.exec(line);
       const indent = match?.[1] ?? '';
@@ -533,6 +553,9 @@ function addMarkerToLine(
 
 function removeMarkerFromLine(line: string, format: BlockFormat): string {
   switch (format) {
+    case 'heading-2':
+    case 'heading-3':
+      return line.replace(/^(\s*)#{1,6}\s+/, '$1');
     case 'quote': {
       const match = QUOTE_PATTERN.exec(line);
       return match ? `${match[1] ?? ''}${line.slice(match[0].length)}` : line;

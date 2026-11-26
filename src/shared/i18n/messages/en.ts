@@ -131,6 +131,7 @@ export default {
   },
   toolbar: {
     formatting: 'Formatting',
+    headingGroup: 'Headings',
     inlineGroup: 'Text style',
     blocksGroup: 'Blocks',
     insertGroup: 'Insert',
@@ -139,6 +140,8 @@ export default {
     underline: 'Underline',
     strikethrough: 'Strikethrough',
     code: 'Code',
+    heading2: 'Heading 2 (Ctrl/⌘+Alt+2)',
+    heading3: 'Heading 3 (Ctrl/⌘+Alt+3)',
     codeBlock: 'Code block',
     quote: 'Quote',
     unorderedList: 'Bullet list',

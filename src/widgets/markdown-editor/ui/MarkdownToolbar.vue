@@ -7,6 +7,37 @@
     <div
       class="editor-toolbar__group"
       role="group"
+      :aria-label="t('toolbar.headingGroup')"
+    >
+      <template
+        v-for="button in headingButtons"
+        :key="button.action"
+      >
+        <button
+          type="button"
+          class="editor-toolbar__button"
+          :aria-pressed="button.ariaPressed"
+          :aria-label="t(button.labelKey)"
+          :title="t(button.labelKey)"
+          @mousedown.prevent
+          @click="emit('action', button.action)"
+        >
+          <AppIcon
+            :name="button.icon"
+            :size="18"
+          />
+        </button>
+      </template>
+    </div>
+
+    <span
+      class="editor-toolbar__separator"
+      aria-hidden="true"
+    ></span>
+
+    <div
+      class="editor-toolbar__group"
+      role="group"
       :aria-label="t('toolbar.inlineGroup')"
     >
       <template
@@ -151,6 +182,21 @@ const inlineBaseButtons: readonly ToolbarButton[] = [
   { action: 'code', icon: 'code', labelKey: 'toolbar.code', pressed: true },
 ];
 
+const headingBaseButtons: readonly ToolbarButton[] = [
+  {
+    action: 'heading-2',
+    icon: 'heading-2',
+    labelKey: 'toolbar.heading2',
+    pressed: true,
+  },
+  {
+    action: 'heading-3',
+    icon: 'heading-3',
+    labelKey: 'toolbar.heading3',
+    pressed: true,
+  },
+];
+
 const blockBaseButtons: readonly ToolbarButton[] = [
   {
     action: 'code-block',
@@ -202,6 +248,7 @@ function withState(buttons: readonly ToolbarButton[]): ToolbarButtonState[] {
   }));
 }
 
+const headingButtons = computed(() => withState(headingBaseButtons));
 const inlineButtons = computed(() => withState(inlineBaseButtons));
 const blockButtons = computed(() => withState(blockBaseButtons));
 const insertButtons = computed(() => withState(insertBaseButtons));

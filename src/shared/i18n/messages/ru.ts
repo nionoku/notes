@@ -134,6 +134,7 @@ export default {
   },
   toolbar: {
     formatting: 'Форматирование',
+    headingGroup: 'Заголовки',
     inlineGroup: 'Стиль текста',
     blocksGroup: 'Блоки',
     insertGroup: 'Вставка',
@@ -142,6 +143,8 @@ export default {
     underline: 'Подчёркивание',
     strikethrough: 'Зачёркивание',
     code: 'Код',
+    heading2: 'Заголовок 2 (Ctrl/⌘+Alt+2)',
+    heading3: 'Заголовок 3 (Ctrl/⌘+Alt+3)',
     codeBlock: 'Блок кода',
     quote: 'Цитата',
     unorderedList: 'Маркированный список',
