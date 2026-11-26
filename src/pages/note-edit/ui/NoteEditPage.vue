@@ -6,13 +6,7 @@
       </h1>
     </header>
 
-    <template v-if="showLoading">
-      <p role="status">
-        {{ t('common.loadingDocument') }}
-      </p>
-    </template>
-
-    <template v-else-if="showError">
+    <template v-if="showError">
       <div role="alert">
         <p>{{ notesStore.error }}</p>
         <button type="button" class="button-link" @click="retry">
@@ -213,11 +207,6 @@ const note = computed(() =>
 );
 const pageTitle = computed(() =>
   isCreate.value ? t('noteEdit.newTitle') : t('noteEdit.editTitle'),
-);
-const showLoading = computed(
-  () =>
-    !isCreate.value &&
-    (notesStore.status === 'loading' || notesStore.status === 'idle'),
 );
 const showError = computed(
   () => !isCreate.value && notesStore.status === 'error',

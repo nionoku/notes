@@ -25,8 +25,6 @@ export default {
     edit: 'Редактировать',
     insert: 'Вставить',
     tags: 'Теги',
-    loadingDocuments: 'Загрузка документов…',
-    loadingDocument: 'Загрузка документа…',
     documentNotFound: 'Документ не найден',
     documentMissing: 'Возможно, он был перемещён или удалён из хранилища.',
     backToNotes: 'Вернуться к записям',

@@ -1,12 +1,6 @@
 <template>
   <section class="note-page" :aria-labelledby="headingId">
-    <template v-if="showLoading">
-      <p role="status">
-        {{ t('common.loadingDocument') }}
-      </p>
-    </template>
-
-    <template v-else-if="showError">
+    <template v-if="showError">
       <div role="alert">
         <p>{{ notesStore.error }}</p>
         <button type="button" class="button-link" @click="retry">
@@ -88,7 +82,7 @@
       </article>
     </template>
 
-    <template v-else>
+    <template v-else-if="showMissing">
       <div class="note-page__missing">
         <h1>{{ t('common.documentNotFound') }}</h1>
         <p>{{ t('common.documentMissing') }}</p>
@@ -260,10 +254,10 @@ const dueOverdue = computed(() => {
   const time = Date.parse(note.value.dueAt);
   return Number.isFinite(time) && time < Date.now();
 });
-const showLoading = computed(
-  () => notesStore.status === 'loading' || notesStore.status === 'idle',
-);
 const showError = computed(() => notesStore.status === 'error');
+const showMissing = computed(
+  () => notesStore.status === 'ready' && !note.value,
+);
 const hasDates = computed(() =>
   Boolean(note.value?.createdAt || note.value?.modifiedAt),
 );

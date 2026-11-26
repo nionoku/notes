@@ -1,12 +1,6 @@
 <template>
   <section class="notes-page" :aria-labelledby="headingId">
-    <template v-if="showLoading">
-      <p role="status">
-        {{ t('common.loadingDocuments') }}
-      </p>
-    </template>
-
-    <template v-else-if="showError">
+    <template v-if="showError">
       <div role="alert">
         <p>{{ notesStore.error }}</p>
         <button type="button" class="button-link" @click="retry">
@@ -25,7 +19,7 @@
       </div>
     </template>
 
-    <template v-else>
+    <template v-else-if="showContent">
       <div class="notes-page__content">
         <NotesSearch
           :query="query"
@@ -101,11 +95,11 @@ const selectedTags = ref<string[]>([]);
 const searchResult = computed(() =>
   searchDocuments(notesStore.sortedNotes, query.value, selectedTags.value),
 );
-const showLoading = computed(
-  () => notesStore.status === 'loading' || notesStore.status === 'idle',
-);
 const showError = computed(() => notesStore.status === 'error');
 const showEmpty = computed(() => notesStore.isEmpty);
+const showContent = computed(
+  () => notesStore.status === 'ready' || notesStore.sortedNotes.length > 0,
+);
 const isAnchorMode = computed(() => searchResult.value.mode === 'anchor');
 const hasAnchorResults = computed(() => searchResult.value.anchors.length > 0);
 const anchorItems = computed(() =>
