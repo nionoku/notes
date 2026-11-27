@@ -717,7 +717,7 @@ function syncAfterSave(): void {
 
 function handleCancel(): void {
   if (!isCreate.value && note.value) {
-    void router.push(documentRoute(note.value.path));
+    void router.replace(documentRoute(note.value.path));
     return;
   }
   void router.replace(notesListRoute());
