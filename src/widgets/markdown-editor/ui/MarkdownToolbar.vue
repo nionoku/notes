@@ -300,6 +300,12 @@ const insertTableButton: ToolbarButton = {
   shortcut: 'Ctrl/⌘+Alt+T',
 };
 
+const tableBeautifyButton: ToolbarButton = {
+  action: 'table-beautify',
+  icon: 'table-beautify',
+  labelKey: 'toolbar.tableBeautify',
+};
+
 const tableBaseButtons: readonly ToolbarButton[] = [
   {
     action: 'table-add-row',
@@ -372,6 +378,7 @@ const tableButtons = computed(() => {
               : false,
       })),
     ),
+    ...withState([tableBeautifyButton]),
   ];
 });
 </script>

@@ -157,6 +157,7 @@ export default {
     tableAddColumn: 'Add column right',
     tableDeleteRow: 'Delete row',
     tableDeleteColumn: 'Delete column',
+    tableBeautify: 'Beautify table',
   },
   imageLightbox: {
     label: 'Image',

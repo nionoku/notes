@@ -1161,6 +1161,26 @@ function isDelimiterRow(row: TableRow): boolean {
   return row.cells.every(cell => TABLE_DELIMITER_CELL.test(cell.text));
 }
 
+interface TableAlignment {
+  readonly left: boolean;
+  readonly right: boolean;
+}
+
+const TABLE_MIN_COLUMN_WIDTH = 3;
+
+function parseTableAlignment(cell: string): TableAlignment | null {
+  const text = cell.trim();
+  if (!TABLE_DELIMITER_CELL.test(text)) {
+    return null;
+  }
+  return { left: text.startsWith(':'), right: text.endsWith(':') };
+}
+
+/** Собирает строку из готовых ячеек, не обрезая добавленные пробелы. */
+function renderAlignedRow(cells: readonly string[]): string {
+  return cells.length === 0 ? '| |' : `| ${cells.join(' | ')} |`;
+}
+
 function cellColumnAt(row: TableRow, index: number): number {
   for (let column = 0; column < row.cells.length; column += 1) {
     if (index <= (row.cells[column]?.end ?? 0)) {
@@ -1478,5 +1498,88 @@ export function addTableRowBelow(
       start: insertAt + 1 + columnOffset,
       end: insertAt + 1 + columnOffset,
     },
+  };
+}
+
+/**
+ * Приводит таблицу к ровным колонкам: ширина каждой колонки — по самой
+ * длинной ячейке, ячейки дополняются пробелами, строка-разделитель —
+ * дефисами. Выравнивание (`:---`, `---:`) сохраняется.
+ */
+export function beautifyTable(value: string, caret: number): EditResult | null {
+  const table = findTableBlock(value, caret);
+  if (!table) {
+    return null;
+  }
+
+  const position = Math.max(0, Math.min(caret, value.length));
+  const delimiterRows = table.rows[1]?.cells ?? [];
+  const columnCount = Math.max(
+    table.columnCount,
+    ...table.rows.map(row => row.cells.length),
+  );
+  const widths: number[] = [];
+  for (let column = 0; column < columnCount; column += 1) {
+    const alignment = parseTableAlignment(delimiterRows[column]?.text ?? '');
+    let width =
+      TABLE_MIN_COLUMN_WIDTH +
+      (alignment?.left ? 1 : 0) +
+      (alignment?.right ? 1 : 0);
+    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex += 1) {
+      if (rowIndex === 1) {
+        continue;
+      }
+      const text = table.rows[rowIndex]?.cells[column]?.text.trim() ?? '';
+      width = Math.max(width, text.length);
+    }
+    widths.push(width);
+  }
+
+  const texts = table.rows.map((row, rowIndex) => {
+    const cells = row.cells.map(cell => cell.text.trim());
+    if (rowIndex === 1) {
+      return renderAlignedRow(
+        row.cells.map((cell, column) => {
+          const alignment = parseTableAlignment(cell.text) ?? {
+            left: false,
+            right: false,
+          };
+          const width = widths[column] ?? TABLE_MIN_COLUMN_WIDTH;
+          const colons = (alignment.left ? 1 : 0) + (alignment.right ? 1 : 0);
+          const dashes = Math.max(1, width - colons);
+          const left = alignment.left ? ':' : '';
+          const right = alignment.right ? ':' : '';
+          return `${left}${'-'.repeat(dashes)}${right}`;
+        }),
+      );
+    }
+    return renderAlignedRow(
+      cells.map((text, column) => text.padEnd(widths[column] ?? 0)),
+    );
+  });
+
+  const targetRow = table.rows[table.rowIndex];
+  const targetCell = targetRow?.cells[table.columnIndex];
+  let caretOffset = 0;
+  if (targetCell && table.rowIndex !== 1) {
+    const leading = targetCell.text.length - targetCell.text.trimStart().length;
+    const offset = position - (targetCell.start + leading);
+    caretOffset = Math.min(Math.max(0, offset), targetCell.text.trim().length);
+  }
+
+  const blockStart = table.rows[0]?.lineStart ?? 0;
+  const blockEnd = table.rows[table.rows.length - 1]?.lineEnd ?? value.length;
+  let selectionStart = blockStart;
+  for (let row = 0; row < table.rowIndex; row += 1) {
+    selectionStart += (texts[row]?.length ?? 0) + 1;
+  }
+  selectionStart +=
+    cellContentOffset(texts[table.rowIndex] ?? '', table.columnIndex) +
+    caretOffset;
+
+  return {
+    value:
+      value.slice(0, blockStart) + texts.join('\n') + value.slice(blockEnd),
+    selection: { start: selectionStart, end: selectionStart },
   };
 }

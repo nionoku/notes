@@ -12,7 +12,8 @@ export type TableAction =
   | 'table-add-row'
   | 'table-add-column'
   | 'table-delete-row'
-  | 'table-delete-column';
+  | 'table-delete-column'
+  | 'table-beautify';
 
 export type ToolbarAction =
   | InlineFormat

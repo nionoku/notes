@@ -160,6 +160,7 @@ export default {
     tableAddColumn: 'Добавить столбец справа',
     tableDeleteRow: 'Удалить строку',
     tableDeleteColumn: 'Удалить столбец',
+    tableBeautify: 'Выровнять таблицу',
   },
   imageLightbox: {
     label: 'Изображение',

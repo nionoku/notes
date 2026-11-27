@@ -83,6 +83,7 @@ import type { ToolbarAction } from '@/widgets/markdown-editor/model/toolbar-acti
 import {
   addTableColumnRight,
   addTableRowBelow,
+  beautifyTable,
   continueMarkdown,
   type BlockFormat,
   type EditorSelection,
@@ -374,6 +375,9 @@ function handleAction(action: ToolbarAction): void {
       return;
     case 'table-delete-column':
       applyTableOperation(deleteTableColumn);
+      return;
+    case 'table-beautify':
+      applyTableOperation(beautifyTable);
       return;
     default:
       break;
