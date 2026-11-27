@@ -328,7 +328,11 @@ function centerTextareaCaret(): void {
   const borderTop = Number.parseFloat(style.borderTopWidth) || 0;
   const caretTop =
     textareaRect.top + borderTop + markerRect.top - textarea.scrollTop;
-  const target = window.scrollY + caretTop - window.innerHeight / 2;
+  const viewport = window.visualViewport;
+  const viewportCenter = viewport
+    ? viewport.offsetTop + viewport.height / 2
+    : window.innerHeight / 2;
+  const target = window.scrollY + caretTop - viewportCenter;
 
   if (Math.abs(target - window.scrollY) < 1) {
     return;
@@ -740,11 +744,13 @@ watch(
 
 onMounted(() => {
   window.addEventListener('resize', scheduleTextareaFit);
+  window.visualViewport?.addEventListener('resize', scheduleTextareaFit);
   scheduleTextareaFit();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', scheduleTextareaFit);
+  window.visualViewport?.removeEventListener('resize', scheduleTextareaFit);
   window.cancelAnimationFrame(fitFrame);
   measureMirror?.remove();
   measureMirror = null;

@@ -834,6 +834,7 @@ function retry(): void {
 .tag-option:has(input:checked) {
   background: var(--tag-background-strong);
   font-weight: 600;
+  outline: 1px solid var(--color-focus);
 }
 
 .tag-option:has(input:focus-visible) {
