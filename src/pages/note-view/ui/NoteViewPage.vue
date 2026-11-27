@@ -66,6 +66,18 @@
                   type="button"
                   class="note__menu-item"
                   role="menuitem"
+                  @click="shareFromMenu"
+                >
+                  <AppIcon
+                    name="share"
+                    :size="16"
+                  />
+                  {{ t('shareNote.menu') }}
+                </button>
+                <button
+                  type="button"
+                  class="note__menu-item"
+                  role="menuitem"
                   :disabled="archiving"
                   @click="archiveFromMenu"
                 >
@@ -174,6 +186,10 @@
           </button>
         </div>
       </AppDialog>
+      <ShareNoteDialog
+        v-model:open="shareOpen"
+        :note="note"
+      />
     </template>
 
     <template v-else-if="showMissing">
@@ -246,6 +262,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useNotesStore, describeError } from '@/entities/note/model/note-store';
 import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
 import { exportNoteArchive } from '@/features/export-note/model/export-note';
+import ShareNoteDialog from '@/features/share-note/ui/ShareNoteDialog.vue';
 import NoteDates from '@/entities/note/ui/NoteDates.vue';
 import NoteTags from '@/entities/note/ui/NoteTags.vue';
 import NoteContentView from '@/widgets/note-content/ui/NoteContentView.vue';
@@ -277,6 +294,7 @@ const actionsMenuId = `note-actions-${useId()}`;
 const exporting = ref(false);
 const deleting = ref(false);
 const deleteDialogOpen = ref(false);
+const shareOpen = ref(false);
 const archiving = ref(false);
 let statusTimer: number | undefined;
 let lastFocused: HTMLElement | null = null;
@@ -396,6 +414,14 @@ function exportFromMenu(): void {
 function deleteFromMenu(): void {
   hideNoteActionsMenu();
   openDeleteDialog();
+}
+
+function shareFromMenu(): void {
+  hideNoteActionsMenu();
+  if (!note.value) {
+    return;
+  }
+  shareOpen.value = true;
 }
 
 function openDeleteDialog(): void {

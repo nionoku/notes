@@ -4,6 +4,7 @@ import {
   type RouteLocationNormalized,
 } from 'vue-router';
 
+import ImportNotePage from '@/pages/import-note/ui/ImportNotePage.vue';
 import NoteEditPage from '@/pages/note-edit/ui/NoteEditPage.vue';
 import NoteViewPage from '@/pages/note-view/ui/NoteViewPage.vue';
 import NotesListPage from '@/pages/notes-list/ui/NotesListPage.vue';
@@ -40,6 +41,12 @@ export const router = createRouter({
       name: 'note-create',
       component: NoteEditPage,
       props: { mode: 'create' },
+      sensitive: true,
+    },
+    {
+      path: '/shared',
+      name: 'note-shared',
+      component: ImportNotePage,
       sensitive: true,
     },
     {

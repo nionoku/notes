@@ -45,4 +45,6 @@ export interface NoteDraft {
 export interface PendingAsset {
   readonly fileName: string;
   readonly file: File;
+  /** Путь относительно assets/ для вложений из ссылки или архива. */
+  readonly relativePath?: string;
 }

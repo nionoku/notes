@@ -67,7 +67,7 @@ export function validateDocumentTitle(title: string): string | null {
   if (value === '.' || value === '..') {
     return translate('validation.titleInvalid');
   }
-  if (value === 'create') {
+  if (value === 'create' || value === 'shared') {
     return translate('validation.titleReserved');
   }
   if (/^\.+$/.test(value)) {

@@ -56,6 +56,16 @@ export function notesListRoute(): string {
   return '/';
 }
 
+/** Маршрут импорта заметки из общей ссылки. */
+export function sharedNoteRoute(encoded?: string): string {
+  return encoded ? `/shared?note=${encoded}` : '/shared';
+}
+
+/** Абсолютный путь (с учётом base) для общей ссылки. */
+export function sharedNoteUrl(encoded: string): string {
+  return `${BASE_URL}${sharedNoteRoute(encoded)}`;
+}
+
 export function editDocumentUrl(path: string): string {
   return `${documentUrl(path)}/edit`;
 }

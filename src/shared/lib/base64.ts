@@ -21,3 +21,22 @@ export function base64ToBytes(base64: string): Uint8Array {
   }
   return bytes;
 }
+
+/** URL-safe base64 без padding — для значения query-параметра. */
+export function bytesToBase64Url(bytes: Uint8Array): string {
+  return bytesToBase64(bytes)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+/** Принимает и base64url, и обычный base64 (включая потерянные `+`). */
+export function base64UrlToBytes(value: string): Uint8Array {
+  const normalized = value
+    .trim()
+    .replace(/\s+/g, '+')
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+  const padding = (4 - (normalized.length % 4)) % 4;
+  return base64ToBytes(`${normalized}${'='.repeat(padding)}`);
+}

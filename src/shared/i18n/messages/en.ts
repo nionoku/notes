@@ -72,6 +72,50 @@ export default {
     archived: 'Note archived',
     unarchived: 'Note restored from archive',
   },
+  shareNote: {
+    menu: 'Share',
+    title: 'Share note',
+    description:
+      'The link contains the note text and attachments. The person who opens it gets their own copy — changes in it will not be synchronized with your note.',
+    privacy: 'The link is not encrypted — send it only to people you trust.',
+    loading: 'Preparing the link…',
+    error: 'Could not prepare the link.',
+    invalidTitle: 'This note cannot be shared by link.',
+    invalidAsset: 'The note has an attachment with an invalid name.',
+    linkLabel: 'Import link',
+    copy: 'Copy link',
+    copied: 'Link copied',
+    copyError:
+      'Could not copy automatically. Select the link and copy it manually.',
+    share: 'Share…',
+    shareError:
+      'Could not open the share sheet. The link was not sent — copy it with the button below.',
+    warning:
+      'The link is very long: some browsers and messengers may truncate it.',
+    tooLarge:
+      'The note is too large for a link. Reduce the photos or use ZIP export.',
+  },
+  importNote: {
+    title: 'Import note',
+    loading: 'Reading the link…',
+    description:
+      'A copy of the note will be created in this browser. Attachments will be saved to the app storage. The copy is yours: changes in it are not synchronized with the author’s note.',
+    missing: 'The link does not contain a note.',
+    invalidLink: 'The link is broken or outdated.',
+    unsupportedVersion: 'The link was created by an incompatible app version.',
+    tooLarge: 'The link is too large to import.',
+    invalidTitle: 'The link contains an invalid note title.',
+    invalidAsset: 'The link contains an invalid attachment.',
+    photos: 'Photos: {count}',
+    otherFiles: 'Other files: {count}',
+    due: 'Control date: {date}',
+    import: 'Import note',
+    importing: 'Importing…',
+    importError: 'Could not import the note.',
+    copySuffix: ' (copy)',
+    copySuffixNumbered: ' (copy {number})',
+    fallbackTitle: 'Note',
+  },
   noteEdit: {
     newTitle: 'New note',
     editTitle: 'Edit note',
@@ -259,6 +303,7 @@ export default {
     unknownStorage: 'Unknown storage error.',
     documentFileMissing: 'The document file was not found in storage.',
     exportNoteFailed: 'Could not export the note.',
+    invalidAssetPath: 'Invalid attachment path.',
   },
   validation: {
     titleRequired: 'Enter a document title.',
@@ -266,7 +311,7 @@ export default {
     titleSlash: 'The title cannot contain “/” or “\\”.',
     titleSymbols: 'The title cannot contain < > " | ? * or control characters.',
     titleInvalid: 'Invalid title.',
-    titleReserved: 'The title “create” is reserved by the app.',
+    titleReserved: 'The title “create” or “shared” is reserved by the app.',
     titleTrailing: 'The title cannot end with a period or space.',
   },
   syncTransport: {

@@ -454,7 +454,11 @@ class NoteRepository {
     );
 
     for (const asset of assets) {
-      await this.writeAsset(id, asset.file, asset.fileName);
+      if (asset.relativePath) {
+        await this.writeAssetAt(id, asset.relativePath, asset.file);
+      } else {
+        await this.writeAsset(id, asset.file, asset.fileName);
+      }
     }
 
     const read = await readMarkdownFile(fileHandle);
@@ -602,6 +606,42 @@ class NoteRepository {
     const fileHandle = await assets.getFileHandle(fileName, { create: true });
     await writeBlob(fileHandle, file);
     return `assets/${fileName}`;
+  }
+
+  /**
+   * Сохраняет вложение по точному пути относительно `assets/`.
+   * Используется при импорте ссылок, где ссылки в markdown уже указывают
+   * на конкретный относительный путь.
+   */
+  async writeAssetAt(
+    dirPath: string,
+    relativePath: string,
+    file: File,
+  ): Promise<string> {
+    const segments = relativePath.split('/');
+    if (
+      segments.some(
+        segment =>
+          !segment ||
+          segment === '.' ||
+          segment === '..' ||
+          segment.includes('\\') ||
+          /\p{Cc}/u.test(segment),
+      )
+    ) {
+      throw new DocumentValidationError(translate('errors.invalidAssetPath'));
+    }
+
+    const fileName = segments.pop() ?? '';
+    const root = await getStorageRoot();
+    const assets = await getDirectory(
+      root,
+      [dirPath, 'assets', ...segments],
+      true,
+    );
+    const fileHandle = await assets.getFileHandle(fileName, { create: true });
+    await writeBlob(fileHandle, file);
+    return `assets/${relativePath}`;
   }
 
   async resolveAssetUrl(
