@@ -86,21 +86,5 @@ export function createManifest(base: string): LocalizedManifest {
         },
       ],
     },
-    screenshots: [
-      {
-        src: 'screenshots/notes-wide.png',
-        sizes: '1280x720',
-        type: 'image/png',
-        form_factor: 'wide',
-        label: 'Notes list',
-      },
-      {
-        src: 'screenshots/notes-narrow.png',
-        sizes: '720x1280',
-        type: 'image/png',
-        form_factor: 'narrow',
-        label: 'Markdown note',
-      },
-    ],
   };
 }
