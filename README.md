@@ -1,6 +1,6 @@
 # 📝 Notes
 
-**Version:** `1.9.0`
+**Version:** `1.10.0`
 
 Notes is a local-first Markdown knowledge base that runs entirely in the
 browser. Documents live in the Origin Private File System (OPFS), the app works
