@@ -20,6 +20,7 @@
         <RouterLink
           class="app-header__back"
           :to="listUrl"
+          replace
         >
           <AppIcon
             name="arrow-left"

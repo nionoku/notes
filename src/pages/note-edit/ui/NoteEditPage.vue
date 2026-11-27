@@ -29,6 +29,7 @@
         <RouterLink
           class="button-link"
           :to="listUrl"
+          replace
         >
           {{ t('common.backToNotes') }}
         </RouterLink>
@@ -719,7 +720,7 @@ function handleCancel(): void {
     void router.push(documentRoute(note.value.path));
     return;
   }
-  void router.push(notesListRoute());
+  void router.replace(notesListRoute());
 }
 
 function retry(): void {

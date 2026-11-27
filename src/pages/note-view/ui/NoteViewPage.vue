@@ -183,6 +183,7 @@
         <RouterLink
           class="button-link"
           :to="listUrl"
+          replace
         >
           {{ t('common.backToNotes') }}
         </RouterLink>
@@ -421,7 +422,7 @@ async function deleteCurrentNote(): Promise<void> {
     await syncStore.deleteRemote(current);
     await notesStore.remove(current);
     deleteDialogOpen.value = false;
-    await router.push(listUrl);
+    await router.replace(listUrl);
   } catch (error) {
     showStatus(describeError(error), true);
   } finally {
