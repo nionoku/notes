@@ -391,10 +391,11 @@ const tableButtons = computed(() => {
   gap: 0.25rem;
   padding: 0.3rem;
   border: 1px solid var(--color-border);
-  border-block-end: 0;
   border-start-start-radius: 0.375rem;
   border-start-end-radius: 0.375rem;
   background: var(--color-surface);
+  position: sticky;
+  top: 0;
 }
 
 .editor-toolbar__group {
