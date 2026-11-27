@@ -42,6 +42,33 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'maskable',
           },
+          {
+            src: 'pwa-monochrome-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'monochrome',
+          },
+          {
+            src: 'pwa-monochrome-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'monochrome',
+          },
+        ],
+        shortcuts: [
+          {
+            name: 'Новая заметка',
+            short_name: 'Новая заметка',
+            description: 'Создать новую заметку',
+            url: `${base}create`,
+            icons: [
+              {
+                src: 'pwa-192x192.png',
+                sizes: '192x192',
+                type: 'image/png',
+              },
+            ],
+          },
         ],
       },
       workbox: {
