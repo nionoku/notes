@@ -73,7 +73,15 @@
  * вставки.
  */
 
-import { computed, ref, useId } from 'vue';
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useId,
+  watch,
+} from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import ImageDialog from '@/features/insert-image/ui/ImageDialog.vue';
@@ -136,6 +144,10 @@ const INLINE_FORMATS: ReadonlySet<string> = new Set<InlineFormat>([
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const selection = ref<EditorSelection>({ start: 0, end: 0 });
+const EDITOR_EXTRA_LINES = 2;
+let fitFrame = 0;
+let measureMirror: HTMLTextAreaElement | null = null;
+let caretMirror: HTMLDivElement | null = null;
 const generatedId = useId();
 const inputId = computed(() => props.id ?? `markdown-editor-${generatedId}`);
 const hintId = computed(() => `${inputId.value}-hint`);
@@ -181,6 +193,161 @@ const activeFormats = computed(() => {
 const tableContext = computed(() =>
   tableContextAt(props.modelValue, selection.value.start),
 );
+
+function textareaLineHeight(textarea: HTMLTextAreaElement): number {
+  const style = window.getComputedStyle(textarea);
+  const parsed = Number.parseFloat(style.lineHeight);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  const fontSize = Number.parseFloat(style.fontSize);
+  return Number.isFinite(fontSize) && fontSize > 0 ? fontSize * 1.6 : 24;
+}
+
+function getMeasureMirror(textarea: HTMLTextAreaElement): HTMLTextAreaElement {
+  if (measureMirror) {
+    return measureMirror;
+  }
+
+  const mirror = textarea.cloneNode() as HTMLTextAreaElement;
+  mirror.removeAttribute('id');
+  mirror.removeAttribute('name');
+  mirror.removeAttribute('aria-describedby');
+  mirror.removeAttribute('autofocus');
+  mirror.tabIndex = -1;
+  mirror.setAttribute('aria-hidden', 'true');
+  mirror.style.position = 'fixed';
+  mirror.style.inset = '0 auto auto 0';
+  mirror.style.visibility = 'hidden';
+  mirror.style.pointerEvents = 'none';
+  mirror.style.height = '0px';
+  mirror.style.minHeight = '0px';
+  mirror.style.setProperty('min-block-size', '0px');
+  mirror.style.overflow = 'hidden';
+  mirror.style.resize = 'none';
+  document.body.append(mirror);
+  measureMirror = mirror;
+  return mirror;
+}
+
+function fitTextareaHeight(): void {
+  const textarea = textareaRef.value;
+  if (!textarea) {
+    return;
+  }
+
+  const style = window.getComputedStyle(textarea);
+  const borderInline =
+    (Number.parseFloat(style.borderLeftWidth) || 0) +
+    (Number.parseFloat(style.borderRightWidth) || 0);
+  const borderBlock =
+    (Number.parseFloat(style.borderTopWidth) || 0) +
+    (Number.parseFloat(style.borderBottomWidth) || 0);
+  const lineHeight = textareaLineHeight(textarea);
+
+  const mirror = getMeasureMirror(textarea);
+  mirror.style.width = `${textarea.clientWidth + borderInline}px`;
+  mirror.value = textarea.value;
+  const contentHeight = mirror.scrollHeight;
+
+  textarea.style.height = `${
+    contentHeight + lineHeight * EDITOR_EXTRA_LINES + borderBlock
+  }px`;
+}
+
+function getCaretMirror(textarea: HTMLTextAreaElement): HTMLDivElement {
+  if (caretMirror) {
+    return caretMirror;
+  }
+
+  const style = window.getComputedStyle(textarea);
+  const mirror = document.createElement('div');
+  const properties = [
+    'font-family',
+    'font-size',
+    'font-weight',
+    'font-style',
+    'font-variant',
+    'font-kerning',
+    'font-feature-settings',
+    'font-variant-ligatures',
+    'letter-spacing',
+    'line-height',
+    'word-spacing',
+    'text-transform',
+    'text-indent',
+    'padding-top',
+    'padding-right',
+    'padding-bottom',
+    'padding-left',
+    'tab-size',
+    'direction',
+    'text-align',
+    'word-break',
+    'white-space',
+  ];
+  for (const property of properties) {
+    mirror.style.setProperty(property, style.getPropertyValue(property));
+  }
+  mirror.style.setProperty('position', 'fixed');
+  mirror.style.setProperty('inset', '0 auto auto 0');
+  mirror.style.setProperty('box-sizing', 'border-box');
+  mirror.style.setProperty('visibility', 'hidden');
+  mirror.style.setProperty('pointer-events', 'none');
+  mirror.style.setProperty('overflow', 'hidden');
+  mirror.style.setProperty('overflow-wrap', 'break-word');
+  mirror.setAttribute('aria-hidden', 'true');
+  document.body.append(mirror);
+  caretMirror = mirror;
+  return mirror;
+}
+
+function centerTextareaCaret(): void {
+  const textarea = textareaRef.value;
+  if (!textarea || document.activeElement !== textarea) {
+    return;
+  }
+
+  const style = window.getComputedStyle(textarea);
+  const mirror = getCaretMirror(textarea);
+  mirror.style.width = `${textarea.clientWidth}px`;
+
+  const lineHeight = textareaLineHeight(textarea);
+  const marker = document.createElement('span');
+  marker.textContent = '\u200b';
+  marker.style.setProperty('display', 'inline-block');
+  marker.style.setProperty('inline-size', '0');
+  marker.style.setProperty('block-size', `${lineHeight}px`);
+  marker.style.setProperty('vertical-align', 'top');
+  marker.style.setProperty('overflow', 'hidden');
+  const before = textarea.value.slice(0, textarea.selectionEnd);
+  mirror.replaceChildren(document.createTextNode(before), marker);
+
+  const markerRect = marker.getBoundingClientRect();
+  const textareaRect = textarea.getBoundingClientRect();
+  const borderTop = Number.parseFloat(style.borderTopWidth) || 0;
+  const caretTop =
+    textareaRect.top + borderTop + markerRect.top - textarea.scrollTop;
+  const target = window.scrollY + caretTop - window.innerHeight / 2;
+
+  if (Math.abs(target - window.scrollY) < 1) {
+    return;
+  }
+  window.scrollTo({
+    top: Math.max(0, target),
+    left: window.scrollX,
+    behavior: 'smooth',
+  });
+}
+
+function scheduleTextareaFit(): void {
+  window.cancelAnimationFrame(fitFrame);
+  fitFrame = window.requestAnimationFrame(() => {
+    fitFrame = 0;
+    fitTextareaHeight();
+    centerTextareaCaret();
+  });
+}
 
 function syncSelection(): void {
   const textarea = textareaRef.value;
@@ -259,6 +426,7 @@ function applyEdit(result: EditResult): void {
 
   textarea.setSelectionRange(result.selection.start, result.selection.end);
   syncSelection();
+  scheduleTextareaFit();
 }
 
 function handleInput(): void {
@@ -268,6 +436,7 @@ function handleInput(): void {
   }
   emit('update:modelValue', textarea.value);
   syncSelection();
+  scheduleTextareaFit();
 }
 
 function editorValue(): string {
@@ -561,12 +730,38 @@ function handleKeydown(event: KeyboardEvent): void {
   event.preventDefault();
   applyEdit(result);
 }
+
+watch(
+  () => props.modelValue,
+  () => {
+    void nextTick(scheduleTextareaFit);
+  },
+);
+
+onMounted(() => {
+  window.addEventListener('resize', scheduleTextareaFit);
+  scheduleTextareaFit();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', scheduleTextareaFit);
+  window.cancelAnimationFrame(fitFrame);
+  measureMirror?.remove();
+  measureMirror = null;
+  caretMirror?.remove();
+  caretMirror = null;
+});
 </script>
 
 <style scoped>
 .markdown-editor {
   display: flex;
   flex-direction: column;
+}
+
+/* Запас снизу, чтобы последнюю строку тоже можно было держать по центру. */
+.markdown-editor:focus-within {
+  padding-block-end: 40vh;
 }
 
 .markdown-editor__label {
@@ -579,6 +774,7 @@ function handleKeydown(event: KeyboardEvent): void {
   min-block-size: 18rem;
   padding: 0.75rem;
   border: 1px solid var(--color-border);
+  border-block-start: 0;
   border-end-start-radius: 0.375rem;
   border-end-end-radius: 0.375rem;
   background: var(--color-surface);
