@@ -100,6 +100,7 @@
         <SyncMenu>
           <ExportArchiveButton />
           <ImportNotesButton />
+          <InstallAppButton />
         </SyncMenu>
       </nav>
     </div>
@@ -117,6 +118,7 @@ import { useRoute } from 'vue-router';
 
 import ExportArchiveButton from '@/features/export-archive/ui/ExportArchiveButton.vue';
 import ImportNotesButton from '@/features/import-note/ui/ImportNotesButton.vue';
+import InstallAppButton from '@/features/pwa-install/ui/InstallAppButton.vue';
 import SyncMenu from '@/features/sync-drive/ui/SyncMenu.vue';
 import { useNotesStore } from '@/entities/note/model/note-store';
 import AppIcon from '@/shared/ui/AppIcon.vue';

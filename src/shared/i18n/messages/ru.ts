@@ -35,6 +35,8 @@ export default {
     newNote: 'Новая запись',
     newNoteOptions: 'Другие варианты новой записи',
     inheritTags: 'Наследовать теги',
+    install: 'Добавить на рабочий стол',
+    installApp: 'Добавить на рабочий стол',
   },
   notesList: {
     emptyTitle: 'Пока пусто',
@@ -222,7 +224,7 @@ export default {
     files: 'файл | файла | файлов',
   },
   importNotes: {
-    button: 'Импорт ZIP или MD',
+    button: 'Импорт ZIP или Markdown',
     busy: 'Импортируем…',
     inputLabel: 'Файлы для импорта',
     summary: 'Импорт завершён: документов — {documents}, файлов — {files}.',

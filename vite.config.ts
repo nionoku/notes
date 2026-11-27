@@ -4,6 +4,8 @@ import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+import { createManifest } from './configs/manifest.ts';
+
 const base = (process.env['BASE_PATH'] ?? '/').replace(/\/?$/, '/');
 
 // https://vite.dev/config/
@@ -14,63 +16,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
-      manifest: {
-        id: base,
-        name: 'Notes',
-        short_name: 'Notes',
-        description: 'Локальная база знаний в формате Markdown',
-        lang: 'en',
-        start_url: base,
-        scope: base,
-        display: 'standalone',
-        background_color: '#f8f9fa',
-        theme_color: '#f8f9fa',
-        icons: [
-          {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
-          {
-            src: 'pwa-monochrome-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'monochrome',
-          },
-          {
-            src: 'pwa-monochrome-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'monochrome',
-          },
-        ],
-        shortcuts: [
-          {
-            name: 'Новая заметка',
-            short_name: 'Новая заметка',
-            description: 'Создать новую заметку',
-            url: `${base}create`,
-            icons: [
-              {
-                src: 'pwa-192x192.png',
-                sizes: '192x192',
-                type: 'image/png',
-              },
-            ],
-          },
-        ],
-      },
+      manifest: createManifest(base),
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: `${base}index.html`,

@@ -35,6 +35,8 @@ export default {
     newNote: 'New note',
     newNoteOptions: 'Other new note options',
     inheritTags: 'Inherit tags',
+    install: 'Add to Home screen',
+    installApp: 'Add to Home screen',
   },
   notesList: {
     emptyTitle: 'Nothing here yet',
@@ -218,7 +220,7 @@ export default {
     files: 'file | files',
   },
   importNotes: {
-    button: 'Import ZIP or MD',
+    button: 'Import ZIP or Markdown',
     busy: 'Importing…',
     inputLabel: 'Files to import',
     summary: 'Import complete: documents — {documents}, files — {files}.',

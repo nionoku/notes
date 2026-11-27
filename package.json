@@ -11,8 +11,8 @@
     "lint": "eslint .",
     "lint:css": "stylelint \"src/**/*.{css,vue}\"",
     "lint:all": "npm run lint && npm run lint:css",
-    "format": "prettier --write \"src/**/*.{ts,vue}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,vue}\""
+    "format": "prettier --write \"src/**/*.{ts,vue}\" \"configs/**/*.ts\" vite.config.ts",
+    "format:check": "prettier --check \"src/**/*.{ts,vue}\" \"configs/**/*.ts\" vite.config.ts"
   },
   "dependencies": {
     "dompurify": "^3.5.0",

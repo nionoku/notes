@@ -2,6 +2,7 @@ import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 
 import App from '@/App.vue';
+import { initPwaInstall } from '@/features/pwa-install/model/pwa-install-state';
 import {
   bindDriveConfigFromQuery,
   stripDriveSecretsFromUrl,
@@ -12,6 +13,7 @@ import '@/app/styles/reset.css';
 import '@/app/styles/global.css';
 
 bindDriveConfigFromQuery();
+initPwaInstall();
 
 const app = createApp(App);
 app.use(createPinia());
