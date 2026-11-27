@@ -48,6 +48,8 @@ function summaryDetail(summary: SyncSummary): string {
   return `${parts.join(', ')}.`;
 }
 
+const AUTO_SYNC_INTERVAL_MS = 10 * 60 * 1_000;
+
 export const useDriveSyncStore = defineStore('drive-sync', () => {
   const config = ref<DriveConfig>(loadDriveConfig());
   const state = ref<DriveSyncState>(
@@ -148,6 +150,19 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
     await deleteRemoteNote(config.value, note);
   }
 
+  async function syncOnStartup(): Promise<void> {
+    if (!configured.value) {
+      return;
+    }
+    const last = Date.parse(lastSyncAt.value);
+    const recentlySynced =
+      Number.isFinite(last) && Date.now() - last < AUTO_SYNC_INTERVAL_MS;
+    if (recentlySynced) {
+      return;
+    }
+    await sync();
+  }
+
   async function sync(): Promise<void> {
     if (syncing.value) {
       pendingSync = true;
@@ -209,6 +224,7 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
     requestTaskSync,
     flushPendingTaskSync,
     deleteRemote,
+    syncOnStartup,
     sync,
   };
 });

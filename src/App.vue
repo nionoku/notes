@@ -36,8 +36,6 @@ async function requestPersistence(): Promise<void> {
 onMounted(() => {
   void requestPersistence();
   void notesStore.loadAll();
-  if (syncStore.configured) {
-    void syncStore.sync();
-  }
+  void syncStore.syncOnStartup();
 });
 </script>
