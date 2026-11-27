@@ -9,22 +9,19 @@ import NoteEditPage from '@/pages/note-edit/ui/NoteEditPage.vue';
 import NoteViewPage from '@/pages/note-view/ui/NoteViewPage.vue';
 import NotesListPage from '@/pages/notes-list/ui/NotesListPage.vue';
 
-function pathFromParams(value: unknown): string {
-  if (Array.isArray(value)) {
-    return value.join('/');
-  }
+function param(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
 
-function viewProps(route: RouteLocationNormalized): { path: string } {
-  return { path: pathFromParams(route.params['pathMatch']) };
+function viewProps(route: RouteLocationNormalized): { id: string } {
+  return { id: param(route.params['id']) };
 }
 
 function editProps(route: RouteLocationNormalized): {
   mode: 'edit';
-  path: string;
+  id: string;
 } {
-  return { mode: 'edit', path: pathFromParams(route.params['pathMatch']) };
+  return { mode: 'edit', id: param(route.params['id']) };
 }
 
 export const router = createRouter({
@@ -50,17 +47,23 @@ export const router = createRouter({
       sensitive: true,
     },
     {
-      path: '/:pathMatch(.*)*/edit',
+      path: '/note/:id/edit',
       name: 'note-edit',
       component: NoteEditPage,
       props: editProps,
       sensitive: true,
     },
     {
-      path: '/:pathMatch(.*)*',
+      path: '/note/:id',
       name: 'note-view',
       component: NoteViewPage,
       props: viewProps,
+      sensitive: true,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      redirect: { name: 'notes-list' },
       sensitive: true,
     },
   ],

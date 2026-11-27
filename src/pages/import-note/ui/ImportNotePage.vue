@@ -115,7 +115,7 @@ import {
   type SharedNotePayload,
 } from '@/features/share-note/model/share-note';
 import { formatDateTime } from '@/shared/lib/date';
-import { documentRoute, notesListRoute } from '@/shared/lib/urls';
+import { noteRoute, notesListRoute } from '@/shared/lib/urls';
 
 const route = useRoute();
 const router = useRouter();
@@ -222,7 +222,7 @@ async function importNote(): Promise<void> {
     if (!created) {
       throw new Error(t('importNote.importError'));
     }
-    await router.replace(documentRoute(created.path));
+    await router.replace(noteRoute(created.id));
   } catch (failure) {
     importError.value =
       failure instanceof Error ? failure.message : t('importNote.importError');

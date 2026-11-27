@@ -7,7 +7,7 @@ export type NoteState = 'active' | 'archived';
 export interface Note {
   /** Уникальный идентификатор и имя папки хранения. */
   readonly id: string;
-  /** Публичный путь документа (для URL и ссылок), без расширения `.md`. */
+  /** Публичный путь документа (для внутренних ссылок и frontmatter), без расширения `.md`. */
   readonly path: string;
   /** Путь markdown-файла без расширения: `<id>/<id>.md`. */
   readonly filePath: string;

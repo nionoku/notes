@@ -6,9 +6,10 @@ import DOMPurify from 'dompurify';
 import { Marked, type MarkedExtension, type Tokens } from 'marked';
 
 import { escapeHtml } from '@/shared/lib/html';
-import { documentUrl } from '@/shared/lib/urls';
+import { noteUrl } from '@/shared/lib/urls';
 
 export interface ResolvedDocumentLink {
+  readonly id: string;
   readonly path: string;
   readonly title: string;
   readonly exists: boolean;
@@ -71,9 +72,8 @@ function documentLinkExtension(
           );
           const fallbackTitle = link.docPath.split('/').pop() ?? link.docPath;
           const title = resolved?.title ?? fallbackTitle;
-          const path = resolved?.path ?? link.docPath;
+          const id = resolved?.id ?? '';
           const exists = resolved?.exists ?? false;
-          const href = documentUrl(path, link.anchor);
           const classNames = ['document-link'];
           if (!exists) {
             classNames.push('document-link--missing');
@@ -82,11 +82,17 @@ function documentLinkExtension(
             ? `${resolved?.anchorTitle ?? humanizeAnchor(link.anchor)} (${title})`
             : title;
           const attributes = [
-            `href="${escapeHtml(href)}"`,
             `class="${classNames.join(' ')}"`,
-            `data-document-path="${escapeHtml(path)}"`,
             `title="${escapeHtml(link.docPath)}"`,
           ];
+          if (id) {
+            attributes.unshift(
+              `href="${escapeHtml(noteUrl(id, link.anchor))}"`,
+              `data-document-id="${escapeHtml(id)}"`,
+            );
+          } else {
+            attributes.push('aria-disabled="true"');
+          }
           if (link.anchor) {
             attributes.push(
               `data-document-anchor="${escapeHtml(link.anchor)}"`,
@@ -105,7 +111,7 @@ const SANITIZE_OPTIONS = {
   ADD_ATTR: [
     'target',
     'rel',
-    'data-document-path',
+    'data-document-id',
     'data-document-anchor',
     'checked',
     'disabled',

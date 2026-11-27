@@ -3,9 +3,10 @@
  */
 
 import type { ResolvedDocumentLink } from '@/shared/lib/markdown';
-import { documentMarkdownUrl } from '@/shared/lib/urls';
+import { noteMarkdownUrl } from '@/shared/lib/urls';
 
 export interface DocumentLinkLabel {
+  readonly id: string;
   readonly path: string;
   readonly anchor: string;
   readonly title: string;
@@ -35,7 +36,7 @@ export function buildDocumentLinkMarkdown(link: DocumentLinkLabel): string {
   const label = link.anchor
     ? `${link.anchorTitle || humanizeDocumentAnchor(link.anchor)} (${link.title})`
     : link.title;
-  const url = documentMarkdownUrl(link.path, link.anchor || undefined);
+  const url = noteMarkdownUrl(link.id, link.anchor || undefined);
   return `[${escapeLinkText(label)}](${url})`;
 }
 
@@ -48,10 +49,11 @@ function replaceLinks(
     (raw, rawPath: string, rawAnchor?: string) => {
       const anchor = rawAnchor?.trim() ?? '';
       const resolved = resolve(rawPath.trim(), anchor || undefined);
-      if (!resolved) {
+      if (!resolved?.id) {
         return raw;
       }
       return buildDocumentLinkMarkdown({
+        id: resolved.id,
         path: resolved.path,
         anchor,
         title: resolved.title,

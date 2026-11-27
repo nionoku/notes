@@ -288,11 +288,11 @@ import { tagHue } from '@/shared/lib/tag-color';
 import MarkdownEditor from '@/widgets/markdown-editor/ui/MarkdownEditor.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 import AppDialog from '@/shared/ui/AppDialog.vue';
-import { documentRoute, notesListRoute } from '@/shared/lib/urls';
+import { noteRoute, notesListRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
   mode: 'create' | 'edit';
-  path?: string;
+  id?: string;
 }>();
 
 const notesStore = useNotesStore();
@@ -330,7 +330,7 @@ const listUrl = notesListRoute();
 
 const isCreate = computed(() => props.mode === 'create');
 const note = computed(() =>
-  !isCreate.value && props.path ? notesStore.getByPath(props.path) : undefined,
+  !isCreate.value && props.id ? notesStore.getById(props.id) : undefined,
 );
 const pageTitle = computed(() =>
   isCreate.value ? t('noteEdit.newTitle') : t('noteEdit.editTitle'),
@@ -424,7 +424,7 @@ function initialize(): void {
 }
 
 watch(
-  [() => props.mode, () => props.path],
+  [() => props.mode, () => props.id],
   () => {
     initialized.value = false;
     error.value = null;
@@ -612,7 +612,7 @@ async function handleSubmit(): Promise<void> {
       pendingAssets.value = [];
       syncAfterSave();
       allowNavigation.value = true;
-      await router.push(documentRoute(created.path));
+      await router.push(noteRoute(created.id));
       return;
     }
 
@@ -623,7 +623,7 @@ async function handleSubmit(): Promise<void> {
     const updated = await notesStore.save(current, draft);
     syncAfterSave();
     allowNavigation.value = true;
-    await router.push(documentRoute(updated.path));
+    await router.push(noteRoute(updated.id));
   } catch (saveError) {
     if (saveError instanceof DocumentExistsError) {
       titleError.value = describeError(saveError);
@@ -717,7 +717,7 @@ function syncAfterSave(): void {
 
 function handleCancel(): void {
   if (!isCreate.value && note.value) {
-    void router.replace(documentRoute(note.value.path));
+    void router.replace(noteRoute(note.value.id));
     return;
   }
   void router.replace(notesListRoute());

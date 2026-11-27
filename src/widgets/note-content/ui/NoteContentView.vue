@@ -36,7 +36,7 @@ import type { Note } from '@/entities/note/model/note-types';
 import { renderMarkdown } from '@/shared/lib/markdown';
 import ImageLightbox from '@/shared/ui/ImageLightbox.vue';
 import { slugifyHeading } from '@/shared/lib/markdown-headings';
-import { documentRoute } from '@/shared/lib/urls';
+import { noteRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
   note: Note;
@@ -360,17 +360,15 @@ function handleClick(event: MouseEvent): void {
     }
   }
 
-  const documentLink = target.closest<HTMLAnchorElement>(
-    'a[data-document-path]',
-  );
+  const documentLink = target.closest<HTMLAnchorElement>('a[data-document-id]');
   if (documentLink) {
-    const path = documentLink.dataset['documentPath'];
-    if (!path) {
+    const id = documentLink.dataset['documentId'];
+    if (!id) {
       return;
     }
     event.preventDefault();
     const documentAnchor = documentLink.dataset['documentAnchor'];
-    void router.push(documentRoute(path, documentAnchor));
+    void router.push(noteRoute(id, documentAnchor));
     return;
   }
 

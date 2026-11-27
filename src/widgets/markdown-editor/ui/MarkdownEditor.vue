@@ -445,12 +445,14 @@ async function handleImageSubmit(payload: {
 }
 
 function handleDocumentLinkSubmit(payload: {
+  readonly id: string;
   readonly path: string;
   readonly anchor: string;
   readonly title: string;
   readonly anchorTitle: string;
 }): void {
   const syntax = buildDocumentLinkMarkdown({
+    id: payload.id,
     path: payload.path,
     anchor: payload.anchor,
     title: payload.title,

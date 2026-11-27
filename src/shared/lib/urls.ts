@@ -4,39 +4,24 @@
 
 const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-function encodeSegments(path: string): string {
-  return path
-    .split('/')
-    .filter(Boolean)
-    .map(segment => encodeURIComponent(segment))
-    .join('/');
-}
-
-/** URL для markdown-ссылки: кириллица остаётся читаемой, спецсимволы кодируются. */
-export function documentMarkdownUrl(path: string, anchor?: string): string {
-  const encodePart = (value: string): string =>
-    value.replace(/[%# ?()<>[\]]/g, character => {
-      const code = character.codePointAt(0) ?? 0;
-      return `%${code.toString(16).toUpperCase().padStart(2, '0')}`;
-    });
-  const encodedPath = path.split('/').map(encodePart).join('/');
-  const url = `${BASE_URL}/${encodedPath}`;
-  return anchor ? `${url}#${encodePart(anchor)}` : url;
-}
-
-export function documentUrl(path: string, anchor?: string): string {
-  const url = `${BASE_URL}/${encodeSegments(path)}`;
+/** Маршрут документа по стабильному id заметки. */
+export function noteRoute(id: string, anchor?: string): string {
+  const url = `/note/${encodeURIComponent(id)}`;
   return anchor ? `${url}#${encodeURIComponent(anchor)}` : url;
 }
 
-/** Путь для vue-router: base path добавляет сам router. */
-export function documentRoute(path: string, anchor?: string): string {
-  const url = `/${encodeSegments(path)}`;
-  return anchor ? `${url}#${encodeURIComponent(anchor)}` : url;
+/** Абсолютный URL документа по id. */
+export function noteUrl(id: string, anchor?: string): string {
+  return `${BASE_URL}${noteRoute(id, anchor)}`;
 }
 
-export function editDocumentRoute(path: string): string {
-  return `${documentRoute(path)}/edit`;
+/** URL для markdown-ссылки на документ по id. */
+export function noteMarkdownUrl(id: string, anchor?: string): string {
+  return noteUrl(id, anchor);
+}
+
+export function editNoteRoute(id: string): string {
+  return `${noteRoute(id)}/edit`;
 }
 
 export function createDocumentRoute(): string {
@@ -64,10 +49,6 @@ export function sharedNoteRoute(encoded?: string): string {
 /** Абсолютный путь (с учётом base) для общей ссылки. */
 export function sharedNoteUrl(encoded: string): string {
   return `${BASE_URL}${sharedNoteRoute(encoded)}`;
-}
-
-export function editDocumentUrl(path: string): string {
-  return `${documentUrl(path)}/edit`;
 }
 
 export function createDocumentUrl(): string {

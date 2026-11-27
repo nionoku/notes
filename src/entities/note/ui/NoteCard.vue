@@ -55,14 +55,14 @@ import ArchivedMark from '@/entities/note/ui/ArchivedMark.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 import { formatDateTime } from '@/shared/lib/date';
 import { documentDirPath } from '@/entities/note/model/note-path';
-import { documentRoute } from '@/shared/lib/urls';
+import { noteRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
   note: Note;
 }>();
 
 const { t } = useI18n();
-const href = computed(() => documentRoute(props.note.path));
+const href = computed(() => noteRoute(props.note.id));
 const isArchived = computed(() => props.note.state === 'archived');
 const hasImported = computed(() => props.note.imported);
 const hasDates = computed(() =>

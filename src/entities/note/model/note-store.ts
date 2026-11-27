@@ -70,6 +70,14 @@ export const useNotesStore = defineStore('notes', () => {
     return index;
   });
 
+  const notesById = computed(() => {
+    const index = new Map<string, Note>();
+    for (const note of notes.value) {
+      index.set(note.id, note);
+    }
+    return index;
+  });
+
   const sortedNotes = computed(() =>
     [...notes.value].sort((first, second) => {
       const byDate =
@@ -98,6 +106,10 @@ export const useNotesStore = defineStore('notes', () => {
 
   function getByPath(path: string): Note | undefined {
     return notesByPath.value.get(path);
+  }
+
+  function getById(id: string): Note | undefined {
+    return notesById.value.get(id);
   }
 
   async function loadAll(force = false): Promise<void> {
@@ -220,6 +232,7 @@ export const useNotesStore = defineStore('notes', () => {
         anchorTitle = heading?.text;
       }
       return {
+        id: note.id,
         path: note.path,
         title: note.title,
         exists,
@@ -257,6 +270,7 @@ export const useNotesStore = defineStore('notes', () => {
     }
 
     return {
+      id: '',
       path: normalized,
       title: normalized.split('/').pop() ?? normalized,
       exists: false,
@@ -267,11 +281,13 @@ export const useNotesStore = defineStore('notes', () => {
     notes,
     sortedNotes,
     notesByPath,
+    notesById,
     allTags,
     status,
     error,
     isEmpty,
     getByPath,
+    getById,
     loadAll,
     create,
     save,

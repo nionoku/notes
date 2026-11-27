@@ -253,14 +253,10 @@ import NoteContentView from '@/widgets/note-content/ui/NoteContentView.vue';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 import AppDialog from '@/shared/ui/AppDialog.vue';
 import ImportedMark from '@/shared/ui/ImportedMark.vue';
-import {
-  documentUrl,
-  editDocumentRoute,
-  notesListRoute,
-} from '@/shared/lib/urls';
+import { editNoteRoute, noteUrl, notesListRoute } from '@/shared/lib/urls';
 
 const props = defineProps<{
-  path: string;
+  id: string;
 }>();
 
 const notesStore = useNotesStore();
@@ -336,7 +332,7 @@ function handleStatusFocusOut(event: FocusEvent): void {
   scheduleStatusHide();
 }
 
-const note = computed(() => notesStore.getByPath(props.path));
+const note = computed(() => notesStore.getById(props.id));
 const isArchived = computed(() => note.value?.state === 'archived');
 const archiveActionLabel = computed(() =>
   isArchived.value ? t('noteView.unarchive') : t('noteView.archive'),
@@ -416,7 +412,7 @@ async function deleteCurrentNote(): Promise<void> {
 
 const anchor = computed(() => route.hash);
 const editUrl = computed(() =>
-  note.value ? editDocumentRoute(note.value.path) : '',
+  note.value ? editNoteRoute(note.value.id) : '',
 );
 const dueOverdue = computed(() => {
   if (!note.value?.dueAt) {
@@ -456,7 +452,7 @@ function createCalendarEvent(): void {
     return;
   }
   const end = new Date(start.getTime() + 60 * 60 * 1_000);
-  const url = `${window.location.origin}${documentUrl(current.path)}`;
+  const url = `${window.location.origin}${noteUrl(current.id)}`;
   const event = buildCalendarEvent({
     title: current.title,
     start,

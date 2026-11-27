@@ -107,7 +107,7 @@ import NotesSearch from '@/features/search-notes/ui/NotesSearch.vue';
 import { searchDocuments } from '@/features/search-notes/model/search-notes';
 import { useNotesStore } from '@/entities/note/model/note-store';
 import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
-import { createDocumentRoute, documentRoute } from '@/shared/lib/urls';
+import { createDocumentRoute, noteRoute } from '@/shared/lib/urls';
 
 const notesStore = useNotesStore();
 const syncStore = useDriveSyncStore();
@@ -143,7 +143,7 @@ const hasAnchorResults = computed(() => searchResult.value.anchors.length > 0);
 const anchorItems = computed(() =>
   searchResult.value.anchors.map(result => ({
     key: `${result.note.path}#${result.heading.slug}`,
-    href: documentRoute(result.note.path, result.heading.slug),
+    href: noteRoute(result.note.id, result.heading.slug),
     heading: result.heading.text,
     note: result.note.title,
   })),

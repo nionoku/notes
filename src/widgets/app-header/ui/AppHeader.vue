@@ -139,16 +139,11 @@ const menuId = `new-note-menu-${useId()}`;
 const menuRef = ref<HTMLElement | null>(null);
 const isHome = computed(() => route.name === 'notes-list');
 
-function pathFromParams(value: unknown): string {
-  if (Array.isArray(value)) {
-    return value.join('/');
-  }
-  return typeof value === 'string' ? value : '';
-}
-
 const currentNote = computed(() =>
   route.name === 'note-view'
-    ? notesStore.getByPath(pathFromParams(route.params['pathMatch']))
+    ? notesStore.getById(
+        typeof route.params['id'] === 'string' ? route.params['id'] : '',
+      )
     : undefined,
 );
 const inheritedTags = computed(() => currentNote.value?.tags ?? []);

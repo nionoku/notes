@@ -100,6 +100,7 @@ const emit = defineEmits<{
   'update:open': [value: boolean];
   submit: [
     payload: {
+      readonly id: string;
       readonly path: string;
       readonly anchor: string;
       readonly title: string;
@@ -175,6 +176,7 @@ function handleSubmit(): void {
     heading => heading.slug === anchor.value,
   );
   emit('submit', {
+    id: selected.id,
     path: selected.path,
     anchor: anchor.value,
     title: selected.title,
