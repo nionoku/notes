@@ -52,10 +52,6 @@ export default {
     noAnchorsHint: 'Попробуйте другой запрос после #.',
   },
   noteView: {
-    export: 'Экспорт',
-    exportTitle: 'Экспорт заметки',
-    exportDone: 'Архив заметки скачан',
-    exportError: 'Не удалось экспортировать заметку',
     due: 'Дата контроля',
     dueLabel: 'Дата контроля: {date}',
     calendar: 'Создать событие в календаре',
@@ -298,15 +294,11 @@ export default {
     documentNotFound: 'Документ «{path}» не найден.',
     documentExists: 'Документ «{title}» уже существует.',
     invalidSyncPath: 'Недопустимый путь синхронизации.',
-    deleteActiveOnly: 'Удалить можно только архивную заметку.',
-    deleteOffline:
-      'Для удаления архивной заметки нужно подключение к интернету.',
+    deleteOffline: 'Для удаления заметки нужно подключение к интернету.',
     opfsUnsupported:
       'Браузер не поддерживает Origin Private File System. Откройте приложение в современном браузере по HTTPS или на localhost.',
     hashUnsupported: 'Браузер не поддерживает SHA-256 (crypto.subtle).',
     unknownStorage: 'Неизвестная ошибка хранилища.',
-    documentFileMissing: 'Файл документа не найден в хранилище.',
-    exportNoteFailed: 'Не удалось экспортировать заметку.',
     invalidAssetPath: 'Некорректный путь вложения.',
   },
   validation: {

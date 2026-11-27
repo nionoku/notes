@@ -138,9 +138,6 @@ export const useDriveSyncStore = defineStore('drive-sync', () => {
   }
 
   async function deleteRemote(note: Note): Promise<void> {
-    if (note.state !== 'archived') {
-      throw new Error(translate('errors.deleteActiveOnly'));
-    }
     if (!configured.value) {
       return;
     }

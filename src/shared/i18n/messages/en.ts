@@ -52,10 +52,6 @@ export default {
     noAnchorsHint: 'Try another query after #.',
   },
   noteView: {
-    export: 'Export',
-    exportTitle: 'Export note',
-    exportDone: 'Note archive downloaded',
-    exportError: 'Could not export the note',
     due: 'Control date',
     dueLabel: 'Control date: {date}',
     calendar: 'Create calendar event',
@@ -294,15 +290,11 @@ export default {
     documentNotFound: 'Document “{path}” was not found.',
     documentExists: 'Document “{title}” already exists.',
     invalidSyncPath: 'Invalid sync path.',
-    deleteActiveOnly: 'Only archived notes can be deleted.',
-    deleteOffline:
-      'An internet connection is required to delete an archived note.',
+    deleteOffline: 'An internet connection is required to delete a note.',
     opfsUnsupported:
       'Your browser does not support the Origin Private File System. Open the app in a modern browser over HTTPS or on localhost.',
     hashUnsupported: 'Your browser does not support SHA-256 (crypto.subtle).',
     unknownStorage: 'Unknown storage error.',
-    documentFileMissing: 'The document file was not found in storage.',
-    exportNoteFailed: 'Could not export the note.',
     invalidAssetPath: 'Invalid attachment path.',
   },
   validation: {

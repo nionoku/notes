@@ -89,32 +89,17 @@
                 </button>
                 <button
                   type="button"
-                  class="note__menu-item"
+                  class="note__menu-item note__menu-item--danger"
                   role="menuitem"
-                  :disabled="exporting"
-                  @click="exportFromMenu"
+                  :disabled="deleting"
+                  @click="deleteFromMenu"
                 >
                   <AppIcon
-                    name="download"
+                    name="trash"
                     :size="16"
                   />
-                  {{ t('noteView.export') }}
+                  {{ t('noteView.delete') }}
                 </button>
-                <template v-if="isArchived">
-                  <button
-                    type="button"
-                    class="note__menu-item note__menu-item--danger"
-                    role="menuitem"
-                    :disabled="deleting"
-                    @click="deleteFromMenu"
-                  >
-                    <AppIcon
-                      name="trash"
-                      :size="16"
-                    />
-                    {{ t('noteView.delete') }}
-                  </button>
-                </template>
               </div>
             </div>
           </div>
@@ -261,7 +246,6 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useNotesStore, describeError } from '@/entities/note/model/note-store';
 import { useDriveSyncStore } from '@/features/sync-drive/model/drive-sync-store';
-import { exportNoteArchive } from '@/features/export-note/model/export-note';
 import ShareNoteDialog from '@/features/share-note/ui/ShareNoteDialog.vue';
 import NoteDates from '@/entities/note/ui/NoteDates.vue';
 import NoteTags from '@/entities/note/ui/NoteTags.vue';
@@ -291,7 +275,6 @@ const statusAnnouncement = ref('');
 const statusRef = ref<HTMLElement | null>(null);
 const actionsMenuRef = ref<HTMLElement | null>(null);
 const actionsMenuId = `note-actions-${useId()}`;
-const exporting = ref(false);
 const deleting = ref(false);
 const deleteDialogOpen = ref(false);
 const shareOpen = ref(false);
@@ -359,26 +342,6 @@ const archiveActionLabel = computed(() =>
   isArchived.value ? t('noteView.unarchive') : t('noteView.archive'),
 );
 
-async function exportNote(): Promise<void> {
-  const current = note.value;
-  if (!current || exporting.value) {
-    return;
-  }
-
-  exporting.value = true;
-  try {
-    await exportNoteArchive(current);
-    showStatus(t('noteView.exportDone'));
-  } catch (error) {
-    showStatus(
-      error instanceof Error ? error.message : t('noteView.exportError'),
-      true,
-    );
-  } finally {
-    exporting.value = false;
-  }
-}
-
 async function toggleArchive(): Promise<void> {
   const current = note.value;
   if (!current || archiving.value) {
@@ -406,11 +369,6 @@ function archiveFromMenu(): void {
   void toggleArchive();
 }
 
-function exportFromMenu(): void {
-  hideNoteActionsMenu();
-  void exportNote();
-}
-
 function deleteFromMenu(): void {
   hideNoteActionsMenu();
   openDeleteDialog();
@@ -425,7 +383,7 @@ function shareFromMenu(): void {
 }
 
 function openDeleteDialog(): void {
-  if (!isArchived.value || deleting.value) {
+  if (deleting.value) {
     return;
   }
   deleteDialogOpen.value = true;

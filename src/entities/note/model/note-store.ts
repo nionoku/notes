@@ -174,9 +174,6 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   async function remove(note: Note): Promise<void> {
-    if (note.state !== 'archived') {
-      throw new Error(translate('errors.deleteActiveOnly'));
-    }
     await noteRepository.remove(note);
     notes.value = notes.value.filter(item => item.path !== note.path);
   }

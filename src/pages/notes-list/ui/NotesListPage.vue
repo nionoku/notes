@@ -33,7 +33,7 @@
       <div class="notes-page__content">
         <NotesSearch
           :query="query"
-          :tags="notesStore.allTags"
+          :tags="availableTags"
           :selected-tags="selectedTags"
           :show-archived="showArchived"
           @update:query="updateQuery"
@@ -99,7 +99,7 @@
  * @fileoverview Список записей базы знаний.
  */
 
-import { computed, onMounted, ref, useId } from 'vue';
+import { computed, onMounted, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import NoteCard from '@/entities/note/ui/NoteCard.vue';
@@ -117,10 +117,19 @@ const query = ref('');
 const selectedTags = ref<string[]>([]);
 const showArchived = ref(false);
 const visibleNotes = computed(() =>
-  showArchived.value
-    ? notesStore.sortedNotes
-    : notesStore.sortedNotes.filter(note => note.state === 'active'),
+  notesStore.sortedNotes.filter(note =>
+    showArchived.value ? note.state === 'archived' : note.state === 'active',
+  ),
 );
+const availableTags = computed(() => {
+  const tags = new Set<string>();
+  for (const note of visibleNotes.value) {
+    for (const tag of note.tags) {
+      tags.add(tag);
+    }
+  }
+  return [...tags].sort((first, second) => first.localeCompare(second, 'ru'));
+});
 const searchResult = computed(() =>
   searchDocuments(visibleNotes.value, query.value, selectedTags.value),
 );
@@ -141,6 +150,14 @@ const anchorItems = computed(() =>
 );
 const hasNotes = computed(() => searchResult.value.notes.length > 0);
 const createUrl = createDocumentRoute();
+
+watch(availableTags, tags => {
+  const allowed = new Set(tags);
+  const next = selectedTags.value.filter(tag => allowed.has(tag));
+  if (next.length !== selectedTags.value.length) {
+    selectedTags.value = next;
+  }
+});
 
 onMounted(() => {
   syncStore.flushPendingTaskSync();

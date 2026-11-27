@@ -11,7 +11,7 @@ sync.
 
 - 📝 Create and manage Markdown notes with tags.
 - 🔎 Search notes by title, headings (`#`), and tags.
-- 📦 Export a single note or the whole vault to ZIP.
+- 📦 Export the whole vault to ZIP.
 - ☁️ Sync notes with Google Drive through Apps Script.
 - 📲 Work offline as an installable PWA.
 
