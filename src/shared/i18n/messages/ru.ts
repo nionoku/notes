@@ -154,6 +154,12 @@ export default {
     image: 'Изображение',
     link: 'Ссылка',
     documentLink: 'Ссылка на документ',
+    table: 'Таблица',
+    tableGroup: 'Управление таблицей',
+    tableAddRow: 'Добавить строку ниже',
+    tableAddColumn: 'Добавить столбец справа',
+    tableDeleteRow: 'Удалить строку',
+    tableDeleteColumn: 'Удалить столбец',
   },
   imageLightbox: {
     label: 'Изображение',

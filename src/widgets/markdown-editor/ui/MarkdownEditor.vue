@@ -8,6 +8,7 @@
     <MarkdownToolbar
       :active="activeFormats"
       :allow-images="canUploadImages"
+      :table="tableContext"
       @action="handleAction"
     />
     <textarea
@@ -80,15 +81,22 @@ import DocumentLinkDialog from '@/features/insert-document-link/ui/DocumentLinkD
 import LinkDialog from '@/features/insert-link/ui/LinkDialog.vue';
 import type { ToolbarAction } from '@/widgets/markdown-editor/model/toolbar-actions';
 import {
+  addTableColumnRight,
+  addTableRowBelow,
   continueMarkdown,
   type BlockFormat,
   type EditorSelection,
   type EditResult,
   type InlineFormat,
+  type TableOperation,
+  deleteTableColumn,
+  deleteTableRow,
   indentListSelection,
   insertHorizontalRule,
+  insertTable,
   isFormatActive,
   outdentListSelection,
+  tableContextAt,
   toggleBlockFormat,
   toggleInlineFormat,
 } from '@/widgets/markdown-editor/model/editor-formatting';
@@ -168,6 +176,10 @@ const activeFormats = computed(() => {
   }
   return active;
 });
+
+const tableContext = computed(() =>
+  tableContextAt(props.modelValue, selection.value.start),
+);
 
 function syncSelection(): void {
   const textarea = textareaRef.value;
@@ -327,6 +339,13 @@ function openDocumentLinkDialog(): void {
   documentLinkOpen.value = true;
 }
 
+function applyTableOperation(operation: TableOperation): void {
+  const result = operation(editorValue(), currentSelection().start);
+  if (result) {
+    applyEdit(result);
+  }
+}
+
 function handleAction(action: ToolbarAction): void {
   switch (action) {
     case 'link':
@@ -340,6 +359,21 @@ function handleAction(action: ToolbarAction): void {
       return;
     case 'horizontal-rule':
       applyEdit(insertHorizontalRule(editorValue(), currentSelection().start));
+      return;
+    case 'table':
+      applyEdit(insertTable(editorValue(), currentSelection().start));
+      return;
+    case 'table-add-row':
+      applyTableOperation(addTableRowBelow);
+      return;
+    case 'table-add-column':
+      applyTableOperation(addTableColumnRight);
+      return;
+    case 'table-delete-row':
+      applyTableOperation(deleteTableRow);
+      return;
+    case 'table-delete-column':
+      applyTableOperation(deleteTableColumn);
       return;
     default:
       break;
@@ -457,6 +491,26 @@ function handleKeydown(event: KeyboardEvent): void {
   }
 
   if (modifier && event.altKey) {
+    if (event.code === 'KeyT') {
+      event.preventDefault();
+      applyEdit(insertTable(textarea.value, textarea.selectionStart));
+      return;
+    }
+    if (event.code === 'KeyR' || event.code === 'KeyC') {
+      const operation: TableOperation = event.shiftKey
+        ? event.code === 'KeyR'
+          ? deleteTableRow
+          : deleteTableColumn
+        : event.code === 'KeyR'
+          ? addTableRowBelow
+          : addTableColumnRight;
+      const result = operation(textarea.value, textarea.selectionStart);
+      if (result) {
+        event.preventDefault();
+        applyEdit(result);
+      }
+      return;
+    }
     if (event.code === 'Digit2' || event.code === 'Numpad2') {
       event.preventDefault();
       applyBlock('heading-2');

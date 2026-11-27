@@ -151,6 +151,12 @@ export default {
     image: 'Image',
     link: 'Link',
     documentLink: 'Document link',
+    table: 'Table',
+    tableGroup: 'Table controls',
+    tableAddRow: 'Add row below',
+    tableAddColumn: 'Add column right',
+    tableDeleteRow: 'Delete row',
+    tableDeleteColumn: 'Delete column',
   },
   imageLightbox: {
     label: 'Image',

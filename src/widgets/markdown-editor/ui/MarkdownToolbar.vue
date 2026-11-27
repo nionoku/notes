@@ -123,6 +123,39 @@
         </button>
       </template>
     </div>
+
+    <div class="editor-toolbar__section">
+      <span
+        class="editor-toolbar__separator"
+        aria-hidden="true"
+      ></span>
+
+      <div
+        class="editor-toolbar__group"
+        role="group"
+        :aria-label="t('toolbar.tableGroup')"
+      >
+        <template
+          v-for="button in tableButtons"
+          :key="button.action"
+        >
+          <button
+            type="button"
+            class="editor-toolbar__button"
+            :disabled="button.disabled"
+            :aria-label="t(button.labelKey)"
+            :title="button.title"
+            @mousedown.prevent
+            @click="emit('action', button.action)"
+          >
+            <AppIcon
+              :name="button.icon"
+              :size="18"
+            />
+          </button>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -135,6 +168,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { ToolbarAction } from '@/widgets/markdown-editor/model/toolbar-actions';
+import type { TableContext } from '@/widgets/markdown-editor/model/editor-formatting';
 import AppIcon from '@/shared/ui/AppIcon.vue';
 
 interface ToolbarButton {
@@ -142,6 +176,7 @@ interface ToolbarButton {
   readonly icon: string;
   readonly labelKey: string;
   readonly pressed?: boolean;
+  readonly disabled?: boolean;
   readonly shortcut?: string;
 }
 
@@ -154,6 +189,7 @@ interface ToolbarButtonState extends ToolbarButton {
 const props = defineProps<{
   active: ReadonlySet<string>;
   allowImages: boolean;
+  table: TableContext | null;
 }>();
 
 const emit = defineEmits<{
@@ -257,10 +293,46 @@ const insertBaseButtons: readonly ToolbarButton[] = [
   },
 ];
 
+const insertTableButton: ToolbarButton = {
+  action: 'table',
+  icon: 'table',
+  labelKey: 'toolbar.table',
+  shortcut: 'Ctrl/⌘+Alt+T',
+};
+
+const tableBaseButtons: readonly ToolbarButton[] = [
+  {
+    action: 'table-add-row',
+    icon: 'table-add-row',
+    labelKey: 'toolbar.tableAddRow',
+    shortcut: 'Ctrl/⌘+Alt+R',
+  },
+  {
+    action: 'table-add-column',
+    icon: 'table-add-column',
+    labelKey: 'toolbar.tableAddColumn',
+    shortcut: 'Ctrl/⌘+Alt+C',
+  },
+  {
+    action: 'table-delete-row',
+    icon: 'table-delete-row',
+    labelKey: 'toolbar.tableDeleteRow',
+    shortcut: 'Ctrl/⌘+Alt+Shift+R',
+  },
+  {
+    action: 'table-delete-column',
+    icon: 'table-delete-column',
+    labelKey: 'toolbar.tableDeleteColumn',
+    shortcut: 'Ctrl/⌘+Alt+Shift+C',
+  },
+];
+
 function withState(buttons: readonly ToolbarButton[]): ToolbarButtonState[] {
   return buttons.map(button => ({
     ...button,
-    disabled: button.action === 'image' && !props.allowImages,
+    disabled:
+      Boolean(button.disabled) ||
+      (button.action === 'image' && !props.allowImages),
     ariaPressed: button.pressed ? props.active.has(button.action) : undefined,
     title: button.shortcut
       ? `${t(button.labelKey)} (${button.shortcut})`
@@ -272,6 +344,36 @@ const headingButtons = computed(() => withState(headingBaseButtons));
 const inlineButtons = computed(() => withState(inlineBaseButtons));
 const blockButtons = computed(() => withState(blockBaseButtons));
 const insertButtons = computed(() => withState(insertBaseButtons));
+const tableButtons = computed(() => {
+  const table = props.table;
+  const insertButton = withState([insertTableButton]);
+  if (!table) {
+    return insertButton;
+  }
+  // На строке заголовка доступны только операции со столбцами.
+  const buttons =
+    table.rowIndex === 0
+      ? tableBaseButtons.filter(
+          button =>
+            button.action === 'table-add-column' ||
+            button.action === 'table-delete-column',
+        )
+      : tableBaseButtons;
+  return [
+    ...insertButton,
+    ...withState(
+      buttons.map(button => ({
+        ...button,
+        disabled:
+          button.action === 'table-delete-row'
+            ? !table.canDeleteRow
+            : button.action === 'table-delete-column'
+              ? !table.canDeleteColumn
+              : false,
+      })),
+    ),
+  ];
+});
 </script>
 
 <style scoped>
@@ -327,5 +429,10 @@ const insertButtons = computed(() => withState(insertBaseButtons));
   block-size: 1.5rem;
   margin-inline: 0.2rem;
   background: var(--color-border);
+}
+
+.editor-toolbar__section {
+  display: flex;
+  align-items: center;
 }
 </style>

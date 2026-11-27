@@ -1031,3 +1031,452 @@ export function insertHorizontalRule(value: string, caret: number): EditResult {
     },
   };
 }
+
+/* -------------------------------- Таблицы -------------------------------- */
+
+/** Состояние курсора внутри markdown-таблицы. */
+export interface TableContext {
+  /** Строка: 0 — заголовок, 1 — разделитель, 2 и далее — данные. */
+  readonly rowIndex: number;
+  /** Столбец, в котором стоит курсор. */
+  readonly columnIndex: number;
+  readonly columnCount: number;
+  readonly canDeleteRow: boolean;
+  readonly canDeleteColumn: boolean;
+}
+
+interface TableCell {
+  readonly start: number;
+  readonly end: number;
+  readonly text: string;
+}
+
+interface TableRow {
+  readonly lineStart: number;
+  readonly lineEnd: number;
+  readonly cells: readonly TableCell[];
+}
+
+interface SourceLine {
+  readonly start: number;
+  readonly end: number;
+}
+
+interface TableBlock {
+  readonly rows: readonly TableRow[];
+  readonly rowIndex: number;
+  readonly columnIndex: number;
+  readonly columnCount: number;
+}
+
+type TableEdit = (value: string, caret: number) => EditResult | null;
+
+/** Операция над таблицей; `null` означает, что применять её некуда. */
+export type TableOperation = TableEdit;
+
+const TABLE_DELIMITER_CELL = /^\s*:?-+:?\s*$/;
+const TABLE_COLUMN_COUNT = 3;
+const TABLE_BODY_ROW_COUNT = 2;
+
+function sourceLines(value: string): SourceLine[] {
+  const lines: SourceLine[] = [];
+  let offset = 0;
+  for (const text of value.split('\n')) {
+    lines.push({ start: offset, end: offset + text.length });
+    offset += text.length + 1;
+  }
+  return lines;
+}
+
+function lineIndexAt(lines: readonly SourceLine[], index: number): number {
+  for (let line = 0; line < lines.length; line += 1) {
+    if (index <= (lines[line]?.end ?? 0)) {
+      return line;
+    }
+  }
+  return Math.max(0, lines.length - 1);
+}
+
+/** Делит строку на ячейки по неэкранированным `|`, сохраняя смещения. */
+function splitTableRow(
+  value: string,
+  lineStart: number,
+  lineEnd: number,
+): TableCell[] | null {
+  const pipes: number[] = [];
+  for (let index = lineStart; index < lineEnd; index += 1) {
+    if (value[index] === '|' && !isEscaped(value, index)) {
+      pipes.push(index);
+    }
+  }
+  if (pipes.length === 0) {
+    return null;
+  }
+
+  const cells: TableCell[] = [];
+  let cellStart = lineStart;
+  for (const pipe of pipes) {
+    cells.push({
+      start: cellStart,
+      end: pipe,
+      text: value.slice(cellStart, pipe),
+    });
+    cellStart = pipe + 1;
+  }
+  cells.push({
+    start: cellStart,
+    end: lineEnd,
+    text: value.slice(cellStart, lineEnd),
+  });
+
+  const first = cells[0];
+  if (cells.length > 1 && first && first.text.trim() === '') {
+    cells.shift();
+  }
+  const last = cells[cells.length - 1];
+  if (cells.length > 1 && last && last.text.trim() === '') {
+    cells.pop();
+  }
+  return cells;
+}
+
+function tableRowAt(value: string, line: SourceLine): TableRow | null {
+  const cells = splitTableRow(value, line.start, line.end);
+  if (!cells || cells.length === 0) {
+    return null;
+  }
+  return { lineStart: line.start, lineEnd: line.end, cells };
+}
+
+function tableRowAtLine(
+  value: string,
+  lines: readonly SourceLine[],
+  index: number,
+): TableRow | null {
+  const line = lines[index];
+  return line ? tableRowAt(value, line) : null;
+}
+
+function isDelimiterRow(row: TableRow): boolean {
+  return row.cells.every(cell => TABLE_DELIMITER_CELL.test(cell.text));
+}
+
+function cellColumnAt(row: TableRow, index: number): number {
+  for (let column = 0; column < row.cells.length; column += 1) {
+    if (index <= (row.cells[column]?.end ?? 0)) {
+      return column;
+    }
+  }
+  return Math.max(0, row.cells.length - 1);
+}
+
+/** Находит таблицу вокруг позиции курсора и текущую строку и столбец. */
+function findTableBlock(value: string, position: number): TableBlock | null {
+  const index = Math.max(0, Math.min(position, value.length));
+  if (isInsideFencedCode(value, index)) {
+    return null;
+  }
+
+  const lines = sourceLines(value);
+  const caretLine = lineIndexAt(lines, index);
+  if (!tableRowAtLine(value, lines, caretLine)) {
+    return null;
+  }
+
+  let firstLine = caretLine;
+  while (firstLine > 0 && tableRowAtLine(value, lines, firstLine - 1)) {
+    firstLine -= 1;
+  }
+  let lastLine = caretLine;
+  while (
+    lastLine + 1 < lines.length &&
+    tableRowAtLine(value, lines, lastLine + 1)
+  ) {
+    lastLine += 1;
+  }
+
+  let headerLine = -1;
+  for (let line = firstLine + 1; line <= lastLine; line += 1) {
+    const delimiter = tableRowAtLine(value, lines, line);
+    const header = tableRowAtLine(value, lines, line - 1);
+    if (
+      delimiter &&
+      header &&
+      isDelimiterRow(delimiter) &&
+      header.cells.length === delimiter.cells.length
+    ) {
+      headerLine = line - 1;
+      break;
+    }
+  }
+  if (headerLine === -1) {
+    return null;
+  }
+
+  const rows: TableRow[] = [];
+  for (let line = headerLine; line < lines.length; line += 1) {
+    const row = tableRowAtLine(value, lines, line);
+    if (!row) {
+      break;
+    }
+    rows.push(row);
+  }
+
+  const rowIndex = caretLine - headerLine;
+  if (rows.length < 2 || rowIndex < 0 || rowIndex >= rows.length) {
+    return null;
+  }
+
+  const header = rows[0];
+  const currentRow = rows[rowIndex];
+  if (!header || !currentRow) {
+    return null;
+  }
+
+  return {
+    rows,
+    rowIndex,
+    columnIndex: Math.min(
+      cellColumnAt(currentRow, index),
+      Math.max(0, header.cells.length - 1),
+    ),
+    columnCount: header.cells.length,
+  };
+}
+
+function renderTableRow(cells: readonly string[]): string {
+  const content = cells.map(cell => cell.trim()).join(' | ');
+  return `| ${content} |`;
+}
+
+function tableRowCells(row: TableRow, minimum: number): string[] {
+  const cells = row.cells.map(cell => cell.text.trim());
+  while (cells.length < minimum) {
+    cells.push('');
+  }
+  return cells;
+}
+
+/** Смещение начала содержимого ячейки внутри отрендеренной строки. */
+function cellContentOffset(line: string, column: number): number {
+  const cells = splitTableRow(line, 0, line.length);
+  if (!cells || cells.length === 0) {
+    return 0;
+  }
+  const cell = cells[Math.min(column, cells.length - 1)];
+  return (cell?.start ?? 0) + 1;
+}
+
+function replaceTableRows(
+  value: string,
+  table: TableBlock,
+  rows: readonly string[],
+  targetRow: number,
+  targetColumn: number,
+): EditResult {
+  const blockStart = table.rows[0]?.lineStart ?? 0;
+  const blockEnd = table.rows[table.rows.length - 1]?.lineEnd ?? value.length;
+  let caret = blockStart;
+  for (let row = 0; row < targetRow; row += 1) {
+    caret += (rows[row]?.length ?? 0) + 1;
+  }
+  caret += cellContentOffset(rows[targetRow] ?? '', targetColumn);
+  return {
+    value: value.slice(0, blockStart) + rows.join('\n') + value.slice(blockEnd),
+    selection: { start: caret, end: caret },
+  };
+}
+
+/** Состояние таблицы в позиции курсора или `null`, если курсор вне таблицы. */
+export function tableContextAt(
+  value: string,
+  index: number,
+): TableContext | null {
+  const table = findTableBlock(value, index);
+  if (!table) {
+    return null;
+  }
+  return {
+    rowIndex: table.rowIndex,
+    columnIndex: table.columnIndex,
+    columnCount: table.columnCount,
+    canDeleteRow: table.rowIndex >= 2,
+    canDeleteColumn: table.columnCount > 1,
+  };
+}
+
+/**
+ * Вставляет таблицу из трёх столбцов: заголовок и две строки.
+ * Внутри существующей таблицы новая добавляется под ней.
+ */
+export function insertTable(value: string, caret: number): EditResult {
+  const position = Math.max(0, Math.min(caret, value.length));
+  const header = renderTableRow(
+    Array.from({ length: TABLE_COLUMN_COUNT }, () => ''),
+  );
+  const delimiter = renderTableRow(
+    Array.from({ length: TABLE_COLUMN_COUNT }, () => '---'),
+  );
+  const tableRows = [header, delimiter];
+  for (let row = 0; row < TABLE_BODY_ROW_COUNT; row += 1) {
+    tableRows.push(header);
+  }
+  const tableText = tableRows.join('\n');
+  const columnOffset = cellContentOffset(header, 0);
+
+  const anchor = findTableBlock(value, position);
+  if (anchor) {
+    const insertAt =
+      anchor.rows[anchor.rows.length - 1]?.lineEnd ?? value.length;
+    const after = value.slice(insertAt);
+    const trailing =
+      after === ''
+        ? '\n'
+        : after.startsWith('\n\n')
+          ? ''
+          : after.startsWith('\n')
+            ? '\n'
+            : '\n\n';
+    const insert = `\n\n${tableText}${trailing}`;
+    return {
+      value: value.slice(0, insertAt) + insert + value.slice(insertAt),
+      selection: {
+        start: insertAt + 2 + columnOffset,
+        end: insertAt + 2 + columnOffset,
+      },
+    };
+  }
+
+  const before = value.slice(0, position);
+  const after = value.slice(position);
+  const leading =
+    before === ''
+      ? ''
+      : before.endsWith('\n\n')
+        ? ''
+        : before.endsWith('\n')
+          ? '\n'
+          : '\n\n';
+  const trailing =
+    after === ''
+      ? '\n'
+      : after.startsWith('\n\n')
+        ? ''
+        : after.startsWith('\n')
+          ? '\n'
+          : '\n\n';
+  const insert = `${leading}${tableText}${trailing}`;
+  const nextCaret = position + leading.length + columnOffset;
+  return {
+    value: value.slice(0, position) + insert + value.slice(position),
+    selection: { start: nextCaret, end: nextCaret },
+  };
+}
+
+/** Удаляет строку данных, в которой стоит курсор. */
+export function deleteTableRow(
+  value: string,
+  caret: number,
+): EditResult | null {
+  const table = findTableBlock(value, caret);
+  if (!table || table.rowIndex < 2) {
+    return null;
+  }
+
+  const row = table.rows[table.rowIndex];
+  if (!row) {
+    return null;
+  }
+  const hasLineBreak = row.lineEnd < value.length;
+  const removeStart = hasLineBreak
+    ? row.lineStart
+    : Math.max(0, row.lineStart - 1);
+  const removeEnd = hasLineBreak ? row.lineEnd + 1 : row.lineEnd;
+  const shift = removeStart - removeEnd;
+  const caretOffset = Math.max(0, caret - row.lineStart);
+  const target =
+    table.rows[table.rowIndex + 1] ?? table.rows[table.rowIndex - 1];
+
+  let selectionStart = removeStart;
+  if (target) {
+    const followsRemovedRow = table.rows[table.rowIndex + 1] === target;
+    const targetStart = followsRemovedRow
+      ? target.lineStart + shift
+      : target.lineStart;
+    const targetEnd = followsRemovedRow
+      ? target.lineEnd + shift
+      : target.lineEnd;
+    selectionStart = Math.min(targetStart + caretOffset, targetEnd);
+  }
+
+  return {
+    value: value.slice(0, removeStart) + value.slice(removeEnd),
+    selection: { start: selectionStart, end: selectionStart },
+  };
+}
+
+/** Удаляет столбец, в котором стоит курсор. */
+export function deleteTableColumn(
+  value: string,
+  caret: number,
+): EditResult | null {
+  const table = findTableBlock(value, caret);
+  if (!table || table.columnCount < 2) {
+    return null;
+  }
+
+  const rows = table.rows.map(row => {
+    const cells = tableRowCells(row, table.columnCount);
+    cells.splice(table.columnIndex, 1);
+    return renderTableRow(cells);
+  });
+  const targetColumn = Math.min(table.columnIndex, table.columnCount - 2);
+  return replaceTableRows(value, table, rows, table.rowIndex, targetColumn);
+}
+
+/** Добавляет пустой столбец справа от столбца с курсором. */
+export function addTableColumnRight(
+  value: string,
+  caret: number,
+): EditResult | null {
+  const table = findTableBlock(value, caret);
+  if (!table) {
+    return null;
+  }
+
+  const targetColumn = table.columnIndex + 1;
+  const rows = table.rows.map((row, rowIndex) => {
+    const cells = tableRowCells(row, table.columnCount);
+    cells.splice(targetColumn, 0, rowIndex === 1 ? '---' : '');
+    return renderTableRow(cells);
+  });
+  return replaceTableRows(value, table, rows, table.rowIndex, targetColumn);
+}
+
+/** Добавляет пустую строку под строкой с курсором. Заголовок не трогает. */
+export function addTableRowBelow(
+  value: string,
+  caret: number,
+): EditResult | null {
+  const table = findTableBlock(value, caret);
+  if (!table || table.rowIndex === 0) {
+    return null;
+  }
+
+  const anchor = table.rows[table.rowIndex];
+  if (!anchor) {
+    return null;
+  }
+  const row = renderTableRow(
+    Array.from({ length: table.columnCount }, () => ''),
+  );
+  const insertAt = anchor.lineEnd;
+  const columnOffset = cellContentOffset(row, table.columnIndex);
+  return {
+    value: value.slice(0, insertAt) + '\n' + row + value.slice(insertAt),
+    selection: {
+      start: insertAt + 1 + columnOffset,
+      end: insertAt + 1 + columnOffset,
+    },
+  };
+}
